@@ -66,7 +66,7 @@ export default function App() {
   // State elements
   const [clientes, setClientes] = useState<ClienteTemp[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'form'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'form'>('form');
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -614,11 +614,16 @@ export default function App() {
         <div className={`flex border-b mb-6 overflow-hidden ${styles.tableBorder}`}>
           <div className="flex gap-2 p-1 overflow-x-auto w-full no-scrollbar">
             <button
-              onClick={() => { setActiveTab('dashboard'); resetForm(); }}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('dashboard')}`}
+              onClick={() => { setActiveTab('form'); }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('form')}`}
             >
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>Painel de Indicadores</span>
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>
+                {currentEditingId ? 'Editar Cliente' : 'Novo Cadastro'}
+              </span>
+              {currentEditingId && (
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+              )}
             </button>
 
             <button
@@ -634,16 +639,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => { setActiveTab('form'); }}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('form')}`}
+              onClick={() => { setActiveTab('dashboard'); resetForm(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('dashboard')}`}
             >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>
-                {currentEditingId ? 'Editar Cliente' : 'Novo Cadastro'}
-              </span>
-              {currentEditingId && (
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
-              )}
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>Painel de Indicadores</span>
             </button>
           </div>
         </div>
