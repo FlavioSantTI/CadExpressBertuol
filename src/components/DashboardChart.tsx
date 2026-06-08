@@ -143,12 +143,12 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
           {/* Defs for gradients */}
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#60a5fa" />
-              <stop offset="100%" stopColor="#2563eb" />
+              <stop offset="0%" stopColor="#2dd4bf" />
+              <stop offset="100%" stopColor="#0d9488" />
             </linearGradient>
           </defs>
 
@@ -261,7 +261,7 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
                     y1={padding} 
                     x2={p.x} 
                     y2={chartHeight - padding} 
-                    stroke="#3b82f6" 
+                    stroke="#14b8a6" 
                     strokeWidth={1} 
                     strokeDasharray="2 2"
                   />
@@ -272,8 +272,8 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
                   cx={p.x}
                   cy={p.y}
                   r={hoveredPoint?.date === p.date ? 6 : 3.5}
-                  fill={hoveredPoint?.date === p.date ? '#2563eb' : '#1d4ed8'}
-                  stroke="#3b82f6"
+                  fill={hoveredPoint?.date === p.date ? '#0d9488' : '#0f766e'}
+                  stroke="#14b8a6"
                   strokeWidth={hoveredPoint?.date === p.date ? 2 : 0}
                   className="transition-all duration-150 cursor-pointer"
                   onMouseEnter={() => {
@@ -301,7 +301,7 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
               transform: 'translate(-50%, -100%)'
             }}
           >
-            <div className="font-semibold text-blue-500">
+            <div className="font-semibold text-teal-500">
               {hoveredPoint.count} {hoveredPoint.count === 1 ? 'Cliente' : 'Clientes'}
             </div>
             <div className={`text-[10px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
@@ -313,7 +313,7 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
       <div className={`flex justify-between text-[11px] px-4 mt-2 font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
         <span>Início do Período</span>
         <span className="flex items-center gap-1">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span> 
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-teal-500"></span> 
           Adesão Acumulada no Tempo
         </span>
         <span>Último Cadastro</span>

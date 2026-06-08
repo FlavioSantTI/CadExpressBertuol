@@ -117,6 +117,55 @@ export default function App() {
 
   const isDark = theme === 'dark';
 
+  const isFieldValid = (field: string) => {
+    switch (field) {
+      case 'nome':
+        return formState.nome.trim().length >= 3;
+      case 'cpf': {
+        const rawCpf = formState.cpf.replace(/\D/g, '');
+        return rawCpf.length === 11 && validateCPF(formState.cpf);
+      }
+      case 'identidade':
+        return formState.identidade.trim().length >= 2;
+      case 'telefone': {
+        const rawTel = formState.telefone.replace(/\D/g, '');
+        return rawTel.length >= 10 && rawTel.length <= 11;
+      }
+      case 'email':
+        return formState.email.trim() ? validateEmail(formState.email) : false;
+      case 'data_nascimento':
+        if (!formState.data_nascimento) return false;
+        try {
+          const birthDate = new Date(formState.data_nascimento);
+          const today = new Date();
+          return birthDate <= today && birthDate.getFullYear() > 1900;
+        } catch {
+          return false;
+        }
+      case 'endereco_rua':
+        return formState.endereco_rua.trim().length >= 5;
+      case 'endereco_cidade':
+        return formState.endereco_cidade.trim().length >= 2;
+      case 'endereco_uf':
+        return formState.endereco_uf.trim().length === 2;
+      default:
+        return false;
+    }
+  };
+
+  const calculateFormProgress = () => {
+    let filled = 0;
+    const total = 7; // Nome, CPF, Identidade, Telefone, Rua, Cidade, UF (obrigatorios)
+    if (isFieldValid('nome')) filled++;
+    if (isFieldValid('cpf')) filled++;
+    if (isFieldValid('identidade')) filled++;
+    if (isFieldValid('telefone')) filled++;
+    if (isFieldValid('endereco_rua')) filled++;
+    if (isFieldValid('endereco_cidade')) filled++;
+    if (isFieldValid('endereco_uf')) filled++;
+    return Math.round((filled / total) * 100);
+  };
+
   const styles = {
     bg: isDark ? 'bg-zinc-950 text-zinc-100' : 'bg-slate-50 text-zinc-900',
     headerBg: isDark ? 'border-zinc-900 bg-zinc-900/40' : 'border-zinc-200 bg-white/85 shadow-sm',
@@ -128,8 +177,8 @@ export default function App() {
     chartCard: isDark ? 'border-zinc-950 bg-zinc-900/10' : 'border-zinc-200 bg-white shadow-sm',
     badge: isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600',
     dbCard: isDark ? 'border-zinc-900 bg-zinc-900/20' : 'border-zinc-200 bg-zinc-100/50 shadow-inner',
-    code: isDark ? 'text-blue-400 bg-zinc-950 border-zinc-900' : 'text-blue-600 bg-zinc-100 border-zinc-200',
-    input: isDark ? 'bg-zinc-950 border-zinc-850 text-zinc-200 placeholder-zinc-650 focus:ring-blue-500' : 'bg-white border-zinc-300 text-zinc-800 placeholder-zinc-400 focus:ring-blue-500 shadow-sm',
+    code: isDark ? 'text-teal-400 bg-zinc-950 border-zinc-900' : 'text-teal-600 bg-zinc-100 border-zinc-200',
+    input: isDark ? 'bg-zinc-950 border-zinc-850 text-zinc-200 placeholder-zinc-650 focus:ring-teal-500' : 'bg-white border-zinc-300 text-zinc-800 placeholder-zinc-400 focus:ring-teal-500 shadow-sm',
     tableBorder: isDark ? 'border-zinc-950' : 'border-zinc-200',
     tableHeaderBg: isDark ? 'bg-zinc-900/40 border-b border-zinc-900 text-zinc-400' : 'bg-zinc-100/80 border-b border-zinc-200 text-zinc-600',
     tableRowBg: isDark ? 'hover:bg-zinc-900/40 bg-zinc-950/20 text-zinc-300 border-zinc-900/40' : 'hover:bg-zinc-50 bg-white text-zinc-700 border-zinc-100',
@@ -141,8 +190,8 @@ export default function App() {
     const isActive = activeTab === tab;
     if (isActive) {
       return isDark
-        ? 'bg-zinc-900 border-zinc-800 text-blue-405 shadow-sm border-b-2 border-b-blue-500'
-        : 'bg-white border-zinc-200 text-blue-600 shadow-sm border-b-2 border-b-blue-500';
+        ? 'bg-zinc-900 border-zinc-800 text-teal-400 shadow-sm border-b-2 border-b-teal-500'
+        : 'bg-white border-zinc-200 text-teal-600 shadow-sm border-b-2 border-b-teal-500';
     } else {
       return isDark
         ? 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/30'
@@ -513,21 +562,21 @@ export default function App() {
   }, [clientes]);
 
   return (
-    <div className={`min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white font-sans transition-colors duration-200 ${styles.bg}`}>
+    <div className={`min-h-screen flex flex-col antialiased selection:bg-teal-600 selection:text-white font-sans transition-colors duration-200 ${styles.bg}`}>
       
       {/* Header Container */}
       <header className={`border-b backdrop-blur-sm sticky top-0 z-40 px-4 py-3 sm:py-3.5 transition-colors duration-200 ${styles.headerBg}`}>
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           
           <div className="flex items-center gap-3">
-            <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-blue-500 shadow-md ${isDark ? 'bg-blue-600/10 border border-blue-500/25' : 'bg-blue-50 border border-blue-100'}`}>
+            <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-teal-500 shadow-md ${isDark ? 'bg-teal-600/10 border border-teal-500/25' : 'bg-teal-50 border border-teal-100'}`}>
               <Users className="h-5 w-5" />
             </div>
             <div>
               <h1 className={`text-base font-bold tracking-tight font-display transition-colors ${styles.headerText}`}>
                 CadExpress
               </h1>
-              <p className={`text-[10px] uppercase font-mono tracking-wider transition-colors ${styles.subText}`}>
+              <p className={`text-xs uppercase font-mono tracking-wider transition-colors ${styles.subText}`}>
                 Painel de Controle Corporativo · Migração Odonto Marques
               </p>
             </div>
@@ -541,29 +590,29 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>v1.0-RC</span>
+              <span>Versão 1.0</span>
             </div>
             
             {/* Theme Toggle Button */}
             <button 
               onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer shadow-sm flex items-center justify-center ${isDark ? 'bg-zinc-900 border-zinc-805 text-zinc-400 hover:text-white' : 'bg-white border-zinc-200 text-zinc-650 hover:text-zinc-900 hover:bg-zinc-50'}`}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer shadow-sm flex items-center justify-center ${isDark ? 'bg-zinc-900 border-zinc-805 text-zinc-400 hover:text-white' : 'bg-white border-zinc-200 text-zinc-655 hover:text-zinc-900 hover:bg-zinc-50'}`}
               style={{ width: '30px', height: '30px' }}
               title={theme === 'dark' ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'}
             >
               {theme === 'dark' ? (
                 <Sun className="h-3.5 w-3.5 text-amber-400" />
               ) : (
-                <Moon className="h-3.5 w-3.5 text-blue-600" />
+                <Moon className="h-3.5 w-3.5 text-teal-600" />
               )}
             </button>
 
             <button 
               onClick={() => loadData()}
-              className={`p-1 px-2 text-xs flex items-center gap-1.5 cursor-pointer shadow-sm rounded-lg border transition-colors ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-400 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-650 hover:text-zinc-900'}`}
+              className={`p-1 px-2 text-xs flex items-center gap-1.5 cursor-pointer shadow-sm rounded-lg border transition-colors ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-400 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-655 hover:text-zinc-900'}`}
               title="Recarregar dados"
             >
-              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin text-blue-500' : ''}`} />
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin text-teal-500' : ''}`} />
               <span className="hidden sm:inline">Atualizar</span>
             </button>
           </div>
@@ -578,11 +627,11 @@ export default function App() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mb-4 flex items-center gap-2.5 p-3 text-xs sm:text-sm rounded-lg border border-blue-500/20 bg-blue-500/5 text-blue-400 shadow-md"
+              className="mb-4 flex items-center gap-2.5 p-3 text-xs sm:text-sm rounded-lg border border-teal-500/20 bg-teal-500/5 text-teal-400 shadow-md"
             >
               <CheckCircle className="h-4.5 w-4.5 shrink-0" />
               <span className="font-semibold">{globalSuccess}</span>
-              <button onClick={() => setGlobalSuccess(null)} className="ml-auto hover:text-blue-200 cursor-pointer p-0.5">
+              <button onClick={() => setGlobalSuccess(null)} className="ml-auto hover:text-teal-200 cursor-pointer p-0.5">
                 <X className="h-4 w-4" />
               </button>
             </motion.div>
@@ -631,7 +680,7 @@ export default function App() {
             >
               <Users className="h-3.5 w-3.5" />
               <span>Lista de Clientes</span>
-              <span className={`ml-1 px-1.5 py-0.5 text-[9px] rounded-md font-mono ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-500'}`}>
+              <span className={`ml-1 px-1.5 py-0.5 text-xs rounded-md font-mono ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-500'}`}>
                 {clientes.length}
               </span>
             </button>
@@ -665,10 +714,10 @@ export default function App() {
                   {/* Card 1: Total count */}
                   <div className={`rounded-xl border p-5 relative overflow-hidden group transition-colors ${styles.card}`}>
                     <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                      <Users className="h-32 w-32 text-blue-500" />
+                      <Users className="h-32 w-32 text-teal-500" />
                     </div>
-                    <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
-                      <Users className="h-4 w-4 text-blue-500" />
+                    <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
+                      <Users className="h-4 w-4 text-teal-500" />
                       <span>Total de Cadastros</span>
                     </div>
                     <div className="flex items-baseline gap-2">
@@ -677,7 +726,7 @@ export default function App() {
                       </span>
                       <span className={`text-xs transition-colors ${styles.cardMeta}`}>ativos</span>
                     </div>
-                    <div className={`text-[10px] mt-2 font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                    <div className={`text-xs mt-2 font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
                       Meta Atual Amostral: 100
                     </div>
                   </div>
@@ -685,9 +734,9 @@ export default function App() {
                   {/* Card 2: Average Age */}
                   <div className={`rounded-xl border p-5 relative overflow-hidden group transition-colors ${styles.card}`}>
                     <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                      <Calendar className="h-32 w-32 text-blue-500" />
+                      <Calendar className="h-32 w-32 text-teal-500" />
                     </div>
-                    <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
+                    <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
                       <Heart className="h-4 w-4 text-rose-500" />
                       <span>Média de Idade</span>
                     </div>
@@ -697,7 +746,7 @@ export default function App() {
                       </span>
                       {statistics.averageAge !== null && <span className={`text-xs transition-colors ${styles.cardMeta}`}>anos</span>}
                     </div>
-                    <div className={`text-[10px] mt-2 transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                    <div className={`text-xs mt-2 transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
                       {statistics.averageAge !== null 
                         ? 'Baseado nas datas de nascimento' 
                         : 'Sem informações de idade'}
@@ -707,9 +756,9 @@ export default function App() {
                   {/* Card 3: Recent addition */}
                   <div className={`rounded-xl border p-5 relative overflow-hidden group transition-colors ${styles.card}`}>
                     <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                      <UserPlus className="h-32 w-32 text-blue-500" />
+                      <UserPlus className="h-32 w-32 text-teal-500" />
                     </div>
-                    <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
+                    <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2 ${styles.subText}`}>
                       <TrendingUp className="h-4 w-4 text-emerald-500" />
                       <span>Inclusões (7 dias)</span>
                     </div>
@@ -718,7 +767,7 @@ export default function App() {
                         +{statistics.recentInclusions}
                       </span>
                     </div>
-                    <div className={`text-[10px] mt-2 truncate max-w-full transition-colors ${styles.subText}`}>
+                    <div className={`text-xs mt-2 truncate max-w-full transition-colors ${styles.subText}`}>
                       Último: <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{statistics.lastRegistered}</span>
                     </div>
                   </div>
@@ -735,7 +784,7 @@ export default function App() {
                         Curva acumulativa baseada na propriedade temporal de controle
                       </p>
                     </div>
-                    <span className={`text-[9px] uppercase tracking-wider border px-2.5 py-1 rounded font-mono transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-zinc-200 text-zinc-600'}`}>
+                    <span className={`text-xs uppercase tracking-wider border px-2.5 py-1 rounded font-mono transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-zinc-200 text-zinc-600'}`}>
                       Frequência: Diária
                     </span>
                   </div>
@@ -743,7 +792,7 @@ export default function App() {
                   {loading ? (
                     <div className="flex items-center justify-center h-48">
                       <div className="text-center">
-                        <RefreshCw className="h-6 w-6 stroke-[2] text-blue-500 animate-spin mx-auto mb-2" />
+                        <RefreshCw className="h-6 w-6 stroke-[2] text-teal-500 animate-spin mx-auto mb-2" />
                         <span className="text-xs text-zinc-500">Calculando métricas...</span>
                       </div>
                     </div>
@@ -754,14 +803,14 @@ export default function App() {
 
                 {/* Database Info guidelines & setup */}
                 <div className={`rounded-xl border p-5 flex flex-col md:flex-row md:items-center gap-4 transition-colors ${styles.dbCard}`}>
-                  <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-blue-400' : 'bg-zinc-100 border-zinc-200 text-blue-600'}`}>
+                   <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-teal-400' : 'bg-zinc-100 border-zinc-200 text-teal-600'}`}>
                     <Database className="h-5 w-5" />
                   </div>
                   <div>
                     <h4 className={`text-xs font-bold uppercase tracking-wider font-display transition-colors ${styles.headerText}`}>
                       Arquitetura do Banco de Dados
                     </h4>
-                    <p className={`text-xs mt-0.5 max-w-2xl leading-relaxed transition-colors ${isDark ? 'text-zinc-400' : 'text-zinc-650'}`}>
+                    <p className={`text-xs mt-0.5 max-w-2xl leading-relaxed transition-colors ${isDark ? 'text-zinc-400' : 'text-zinc-655'}`}>
                       Os clientes criados são sincronizados em tempo real diretamente com a tabela <code className={`font-mono px-1.5 py-0.5 rounded border transition-colors ${styles.code}`}>clientes_temp</code> do seu projeto Supabase. Na ausência de credenciais no seu arquivo <code className={`font-mono transition-colors ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>.env</code>, salvamos em cache local para que seu fluxo de testes funcione perfeitamente.
                     </p>
                   </div>
@@ -771,7 +820,7 @@ export default function App() {
                       className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'}`}
                     >
                       <span>Visualizar Lista</span>
-                      <ChevronRight className="h-3.5 w-3.5 text-blue-500" />
+                      <ChevronRight className="h-3.5 w-3.5 text-teal-500" />
                     </button>
                   </div>
                 </div>
@@ -799,7 +848,7 @@ export default function App() {
                     </div>
                     <input
                       type="text"
-                      className={`block w-full pl-9 pr-8 py-2 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner transition-colors ${styles.input}`}
+                      className={`block w-full pl-9 pr-8 py-2 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-all shadow-inner transition-colors ${styles.input}`}
                       placeholder="Filtrar por nome do cliente..."
                       value={searchQuery}
                       onChange={(e) => handleSearchChange(e.target.value)}
@@ -807,7 +856,7 @@ export default function App() {
                     {searchQuery && (
                       <button 
                         onClick={() => handleSearchChange('')}
-                        className={`absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer ${isDark ? 'text-zinc-550 hover:text-white' : 'text-zinc-400 hover:text-zinc-700'}`}
+                        className={`absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer ${isDark ? 'text-zinc-555 hover:text-white' : 'text-zinc-400 hover:text-zinc-700'}`}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -820,13 +869,13 @@ export default function App() {
                       onClick={toggleSortOrder}
                       className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border transition-all select-none cursor-pointer duration-150 ${isDark ? 'bg-zinc-950 hover:bg-zinc-900 text-zinc-305 border-zinc-805 hover:text-white' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-300 hover:text-zinc-950'}`}
                     >
-                      <ArrowUpDown className="h-3.5 w-3.5 text-blue-500" />
+                      <ArrowUpDown className="h-3.5 w-3.5 text-teal-500" />
                       <span>Data: {sortOrder === 'desc' ? 'Novos Primeiro' : 'Antigos Primeiro'}</span>
                     </button>
 
                     <button
                       onClick={() => { resetForm(); setActiveTab('form'); }}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-505 text-white font-medium transition-all cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-medium transition-all cursor-pointer"
                     >
                       <UserPlus className="h-3.5 w-3.5" />
                       <span>Cadastrar</span>
@@ -836,12 +885,12 @@ export default function App() {
                 </div>
 
                 {/* Sub-counter indicators */}
-                <div className={`flex justify-between items-center text-[10px] px-1 font-mono uppercase tracking-wider ${styles.subText}`}>
+                <div className={`flex justify-between items-center text-xs px-1 font-mono uppercase tracking-wider ${styles.subText}`}>
                   <span>
                     No de clientes: <strong className={`font-sans font-semibold transition-colors ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>{clientes.length}</strong>
                   </span>
                   {searchQuery && (
-                    <span className="text-blue-500 font-semibold lowercase">
+                    <span className="text-teal-500 font-semibold lowercase">
                       Filtro ativo para "{searchQuery}"
                     </span>
                   )}
@@ -850,7 +899,7 @@ export default function App() {
                 {/* List Body */}
                 {loading ? (
                   <div className={`flex flex-col items-center justify-center p-16 rounded-xl border transition-colors ${styles.chartCard}`}>
-                    <RefreshCw className="h-6 w-6 text-blue-500 animate-spin mb-3" />
+                    <RefreshCw className="h-6 w-6 text-teal-500 animate-spin mb-3" />
                     <span className="text-xs text-zinc-500 font-mono">Consolidando registros do servidor...</span>
                   </div>
                 ) : clientes.length === 0 ? (
@@ -869,7 +918,7 @@ export default function App() {
                         onClick={() => setActiveTab('form')}
                         className={`mt-4 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all inline-flex items-center gap-1.5 cursor-pointer border ${isDark ? 'bg-zinc-900 hover:bg-zinc-805 border-zinc-800 text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-750'}`}
                       >
-                        <UserPlus className="h-3.5 w-3.5 text-blue-500" />
+                        <UserPlus className="h-3.5 w-3.5 text-teal-500" />
                         <span>Cadastrar Primeiro Cliente</span>
                       </button>
                     )}
@@ -880,7 +929,7 @@ export default function App() {
                     <div className={`hidden md:block overflow-hidden rounded-xl border transition-colors ${styles.chartCard}`}>
                       <div className="overflow-x-auto">
                         <table className={`min-w-full divide-y text-left text-xs ${isDark ? 'divide-zinc-900/60 text-zinc-300' : 'divide-zinc-200 text-zinc-705'}`}>
-                          <thead className={`font-mono uppercase tracking-wider text-[9px] transition-colors ${styles.tableHeaderBg}`}>
+                          <thead className={`font-mono uppercase tracking-wider text-xs transition-colors ${styles.tableHeaderBg}`}>
                             <tr>
                               <th scope="col" className="px-4 py-3.5 font-bold">Identificação</th>
                               <th scope="col" className="px-4 py-3.5 font-bold">Contatos rápidos</th>
@@ -898,7 +947,7 @@ export default function App() {
                                   <div className={`font-semibold text-sm max-w-[170px] truncate ${isDark ? 'text-white' : 'text-zinc-900'}`} title={c.nome}>
                                     {c.nome}
                                   </div>
-                                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5" title="CPF">
+                                  <div className="text-xs text-zinc-500 font-mono mt-0.5" title="CPF">
                                     {c.cpf}
                                   </div>
                                 </td>
@@ -906,19 +955,19 @@ export default function App() {
                                 {/* Email, Phone */}
                                 <td className="px-4 py-3 space-y-0.5">
                                   <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-250' : 'text-zinc-800'}`}>
-                                    <Phone className="h-3 w-3 text-blue-500 shrink-0" />
+                                    <Phone className="h-3 w-3 text-teal-500 shrink-0" />
                                     <span className="font-mono">{c.telefone}</span>
                                   </div>
                                   <div className={`flex items-center gap-1.5 overflow-hidden max-w-[140px] ${isDark ? 'text-zinc-400' : 'text-zinc-550'}`} title={c.email}>
                                     <Mail className="h-3 w-3 text-zinc-500 shrink-0" />
-                                    <span className="truncate text-[10px]">{c.email}</span>
+                                    <span className="truncate text-xs">{c.email}</span>
                                   </div>
                                 </td>
 
                                 {/* RG, Nascimento */}
                                 <td className="px-4 py-3 space-y-0.5">
                                   <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                    <FileText className="h-3 w-3 text-blue-500 shrink-0" />
+                                    <FileText className="h-3 w-3 text-teal-500 shrink-0" />
                                     <span>RG: {c.identidade}</span>
                                   </div>
                                   <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-550'}`}>
@@ -934,23 +983,23 @@ export default function App() {
                                   </div>
                                   {c.municipio_codigo_ibge ? (
                                     <span 
-                                      className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide ${
-                                        isDark ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                      className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
+                                        isDark ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-teal-50 text-teal-600 border border-teal-100'
                                       }`}
                                       title={`Código IBGE do Município: ${c.municipio_codigo_ibge}`}
                                     >
-                                      <MapPin className="h-2.5 w-2.5 text-blue-500 shrink-0" />
+                                      <MapPin className="h-2.5 w-2.5 text-teal-500 shrink-0" />
                                       IBGE: {c.municipio_codigo_ibge}
                                     </span>
                                   ) : (
-                                    <span className={`block mt-1 text-[8px] italic ${isDark ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                    <span className={`block mt-1 text-xs italic ${isDark ? 'text-zinc-650' : 'text-zinc-400'}`}>
                                       Sem município vinculado
                                     </span>
                                   )}
                                 </td>
 
                                 {/* Timestamp inclusao */}
-                                <td className="px-4 py-3 text-zinc-500 font-mono text-[10px]">
+                                <td className="px-4 py-3 text-zinc-500 font-mono text-xs">
                                   {formatTimestampToBRL(c.created_at)}
                                 </td>
 
@@ -962,7 +1011,7 @@ export default function App() {
                                       className={`p-1 px-2 rounded-lg border transition-colors cursor-pointer ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700 hover:text-zinc-950'}`}
                                       title="Editar Cadastro"
                                     >
-                                      <Edit className="h-3.5 w-3.5 text-blue-500" />
+                                      <Edit className="h-3.5 w-3.5 text-teal-500" />
                                     </button>
                                     <button
                                       onClick={() => setDeletingCliente(c)}
@@ -992,7 +1041,7 @@ export default function App() {
                               <h4 className={`font-bold text-sm leading-snug ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                                 {c.nome}
                               </h4>
-                              <p className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                              <p className="text-xs text-zinc-500 font-mono mt-0.5">
                                 CPF: {c.cpf}
                               </p>
                             </div>
@@ -1003,7 +1052,7 @@ export default function App() {
                                 onClick={() => initiateEdit(c)}
                                 className={`p-1.5 rounded-lg border cursor-pointer transition-colors ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'}`}
                               >
-                                <Edit className="h-3.5 w-3.5 text-blue-500" />
+                                <Edit className="h-3.5 w-3.5 text-teal-500" />
                               </button>
                               <button
                                 onClick={() => setDeletingCliente(c)}
@@ -1014,45 +1063,45 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className={`grid grid-cols-2 gap-2 text-[11px] border-t pt-2 transition-colors ${isDark ? 'border-zinc-900/60 text-zinc-400' : 'border-zinc-150 text-zinc-650'}`}>
+                          <div className={`grid grid-cols-2 gap-2 text-xs border-t pt-2 transition-colors ${isDark ? 'border-zinc-900/60 text-zinc-400' : 'border-zinc-150 text-zinc-650'}`}>
                             <div>
-                              <span className={`block uppercase tracking-wider text-[8px] font-mono ${isDark ? 'text-zinc-600' : 'text-zinc-450'}`}>Telefone</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Telefone</span>
                               <span className={`font-mono font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{c.telefone}</span>
                             </div>
                             <div>
-                              <span className={`block uppercase tracking-wider text-[8px] font-mono ${isDark ? 'text-zinc-600' : 'text-zinc-450'}`}>E-mail</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>E-mail</span>
                               <span className={`truncate block max-w-full font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`} title={c.email}>{c.email}</span>
                             </div>
                             <div className="mt-1">
-                              <span className={`block uppercase tracking-wider text-[8px] font-mono ${isDark ? 'text-zinc-600' : 'text-zinc-450'}`}>Identidade</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Identidade</span>
                               <span className={`font-medium ${isDark ? 'text-zinc-350' : 'text-zinc-700'}`}>{c.identidade}</span>
                             </div>
                             <div className="mt-1">
-                              <span className={`block uppercase tracking-wider text-[8px] font-mono ${isDark ? 'text-zinc-600' : 'text-zinc-450'}`}>Nascimento</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Nascimento</span>
                               <span className={`font-medium ${isDark ? 'text-zinc-350' : 'text-zinc-700'}`}>{formatToBRLDate(c.data_nascimento)}</span>
                             </div>
                           </div>
 
-                          <div className={`text-[11px] p-2.5 rounded-lg border space-y-1 transition-colors ${isDark ? 'bg-zinc-950/60 border-zinc-900/85 text-zinc-400' : 'bg-zinc-50 border-zinc-150 text-zinc-650'}`}>
+                          <div className={`text-xs p-2.5 rounded-lg border space-y-1 transition-colors ${isDark ? 'bg-zinc-950/60 border-zinc-900/85 text-zinc-400' : 'bg-zinc-50 border-zinc-150 text-zinc-650'}`}>
                             <div>
-                              <span className={`uppercase tracking-wider text-[8px] font-mono block ${isDark ? 'text-zinc-600' : 'text-zinc-450'}`}>Endereço</span>
+                              <span className={`uppercase tracking-wider text-[10px] font-mono block ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Endereço</span>
                               <p className={`leading-snug text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-750'}`}>{c.endereco}</p>
                               {c.municipio_codigo_ibge ? (
                                 <span 
-                                  className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide ${
-                                    isDark ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                  className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
+                                    isDark ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-teal-50 text-teal-600 border border-teal-100'
                                   }`}
                                 >
-                                  <MapPin className="h-2.5 w-2.5 text-blue-500 shrink-0" />
+                                  <MapPin className="h-2.5 w-2.5 text-teal-500 shrink-0" />
                                   IBGE: {c.municipio_codigo_ibge}
                                 </span>
                               ) : (
-                                <span className={`block mt-1 text-[8px] italic ${isDark ? 'text-zinc-650' : 'text-zinc-405'}`}>
+                                <span className={`block mt-1 text-xs italic ${isDark ? 'text-zinc-655' : 'text-zinc-405'}`}>
                                   Sem município vinculado
                                 </span>
                               )}
                             </div>
-                            <div className={`text-[10px] font-mono pt-1 text-right border-t ${isDark ? 'border-zinc-900/40 text-zinc-500' : 'border-zinc-205 text-zinc-500'}`}>
+                            <div className={`text-xs font-mono pt-1 text-right border-t ${isDark ? 'border-zinc-900/40 text-zinc-500' : 'border-zinc-205 text-zinc-500'}`}>
                               Inclusão: {formatTimestampToBRL(c.created_at)}
                             </div>
                           </div>
@@ -1079,7 +1128,7 @@ export default function App() {
                   
                   {/* Dynamic Form Header */}
                   <div className={`flex items-center gap-3 border-b pb-4 mb-6 transition-colors ${isDark ? 'border-zinc-900' : 'border-zinc-200'}`}>
-                    <div className="h-9 w-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                    <div className="h-9 w-9 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-500">
                       {currentEditingId ? <Edit className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
                     </div>
                     <div>
@@ -1095,11 +1144,46 @@ export default function App() {
                     {currentEditingId && (
                       <button
                         onClick={resetForm}
-                        className={`ml-auto p-1.5 px-3 rounded-lg border text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-all ${isDark ? 'text-zinc-400 hover:text-white bg-zinc-900 border-zinc-800' : 'text-zinc-650 hover:text-zinc-950 bg-white border-zinc-200'}`}
+                        className={`ml-auto p-1.5 px-3 rounded-lg border text-xs uppercase font-bold tracking-wider cursor-pointer transition-all ${isDark ? 'text-zinc-400 hover:text-white bg-zinc-900 border-zinc-800' : 'text-zinc-655 hover:text-zinc-950 bg-white border-zinc-200'}`}
                       >
                         Limpar Edição
                       </button>
                     )}
+                  </div>
+
+                  {/* Form Completeness / Progress Bar */}
+                  <div className={`p-3 rounded-lg border mb-5 transition-all ${
+                    isDark ? 'bg-zinc-950/40 border-zinc-900/60' : 'bg-slate-50 border-zinc-150 shadow-sm'
+                  }`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className={`font-mono text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-zinc-500' : 'text-zinc-405'}`}>
+                        Progresso do Preenchimento
+                      </span>
+                      <span className={`font-mono text-xs font-bold ${
+                        calculateFormProgress() === 100 ? 'text-teal-500' : 'text-amber-500'
+                      }`}>
+                        {calculateFormProgress()}%
+                      </span>
+                    </div>
+                    {/* The track */}
+                    <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      {/* The fill */}
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${calculateFormProgress()}%` }}
+                        transition={{ duration: 0.3 }}
+                        className={`h-full rounded-full ${
+                          calculateFormProgress() === 100 
+                            ? 'bg-gradient-to-r from-teal-400 to-teal-600 shadow-sm' 
+                            : 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm'
+                        }`}
+                      />
+                    </div>
+                    <p className={`text-[10px] mt-2 italic leading-tight ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>
+                      {calculateFormProgress() === 100 
+                        ? '🎉 Excelente! Todos os campos obrigatórios estão preenchidos.'
+                        : `Preencha os ${7 - Math.round(calculateFormProgress() * 7 / 100)} campo(s) obrigatório(s) restante(s).`}
+                    </p>
                   </div>
 
                   {/* Form Wrapper */}
@@ -1108,7 +1192,7 @@ export default function App() {
                     {/* Linha 1: Nome Completo (max 150) */}
                     <div className="space-y-1.5">
                       <label htmlFor="nome" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                        Nome Completo <span className="text-blue-500 font-bold">*</span>
+                        Nome Completo <span className="text-teal-500 font-bold">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1120,14 +1204,19 @@ export default function App() {
                           type="text"
                           maxLength={150}
                           placeholder="Digite o nome completo (ex: João Silva)"
-                          className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
+                          className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
                             formErrors.nome ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                           }`}
                           value={formState.nome}
                           onChange={handleInputChange}
                         />
+                        {isFieldValid('nome') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                            <CheckCircle className="h-4 w-4" />
+                          </div>
+                        )}
                       </div>
-                      <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                      <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
                         <span>{formErrors.nome ? <span className="text-red-500 font-medium">{formErrors.nome}</span> : 'Utilizado em termos e relatórios oficiais'}</span>
                         <span className="font-mono">{formState.nome.length}/150</span>
                       </div>
@@ -1139,7 +1228,7 @@ export default function App() {
                       {/* CPF (max 14) */}
                       <div className="space-y-1.5">
                         <label htmlFor="cpf" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          CPF <span className="text-blue-500 font-bold">*</span>
+                          CPF <span className="text-teal-500 font-bold">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1151,14 +1240,19 @@ export default function App() {
                             type="text"
                             maxLength={14}
                             placeholder="000.000.000-00"
-                            className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
+                            className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
                               formErrors.cpf ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.cpf}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('cpf') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
                           <span>{formErrors.cpf ? <span className="text-red-500 font-medium">{formErrors.cpf}</span> : 'Validação automática de dígitos'}</span>
                           <span className="font-mono">{formState.cpf.length}/14</span>
                         </div>
@@ -1167,7 +1261,7 @@ export default function App() {
                       {/* Identidade / RG (max 20) */}
                       <div className="space-y-1.5">
                         <label htmlFor="identidade" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Identidade (RG) <span className="text-blue-500 font-bold">*</span>
+                          Identidade (RG) <span className="text-teal-500 font-bold">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1179,14 +1273,19 @@ export default function App() {
                             type="text"
                             maxLength={20}
                             placeholder="Digite o RG (ex: 20.345.678-9)"
-                            className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
+                            className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
                               formErrors.identidade ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.identidade}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('identidade') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
                           <span>{formErrors.identidade ? <span className="text-red-500 font-medium">{formErrors.identidade}</span> : 'Órgão emissor oficial'}</span>
                           <span className="font-mono">{formState.identidade.length}/20</span>
                         </div>
@@ -1200,7 +1299,7 @@ export default function App() {
                       {/* Telefone (max 15) */}
                       <div className="space-y-1.5">
                         <label htmlFor="telefone" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Telefone Celular <span className="text-blue-500 font-bold">*</span>
+                          Telefone Celular <span className="text-teal-500 font-bold">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1212,14 +1311,19 @@ export default function App() {
                             type="text"
                             maxLength={15}
                             placeholder="(00) 00000-0000"
-                            className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
+                            className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
                               formErrors.telefone ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.telefone}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('telefone') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
                           <span>{formErrors.telefone ? <span className="text-red-500 font-medium">{formErrors.telefone}</span> : 'Incluso ddd (ex: 11)'}</span>
                           <span className="font-mono">{formState.telefone.length}/15</span>
                         </div>
@@ -1240,14 +1344,19 @@ export default function App() {
                             type="email"
                             maxLength={100}
                             placeholder="usuario@dominio.com"
-                            className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
+                            className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
                               formErrors.email ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.email}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('email') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
                           <span>{formErrors.email ? <span className="text-red-500 font-medium">{formErrors.email}</span> : 'Opcional. Verificação padrão de domínio'}</span>
                           <span className="font-mono">{formState.email.length}/100</span>
                         </div>
@@ -1269,12 +1378,17 @@ export default function App() {
                           name="data_nascimento"
                           type="date"
                           max={getTodayString()} // Native block of future selections
-                          className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
+                          className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 font-mono ${styles.input} ${
                             formErrors.data_nascimento ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                           }`}
                           value={formState.data_nascimento}
                           onChange={handleInputChange}
                         />
+                        {isFieldValid('data_nascimento') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                            <CheckCircle className="h-4 w-4" />
+                          </div>
+                        )}
                       </div>
                       <div className={`text-[10px] px-1 pt-0.5 ${styles.subText}`}>
                         {formErrors.data_nascimento ? (
@@ -1291,7 +1405,7 @@ export default function App() {
                       {/* Logradouro, Número, Bairro */}
                       <div className="col-span-12 md:col-span-6 space-y-1.5">
                         <label htmlFor="endereco_rua" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Logradouro / Número / Bairro <span className="text-blue-500 font-bold">*</span>
+                          Logradouro / Número / Bairro <span className="text-teal-500 font-bold">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1303,14 +1417,19 @@ export default function App() {
                             type="text"
                             maxLength={180}
                             placeholder="Ex: Av. Paulista, 1000 - Bela Vista"
-                            className={`block w-full pl-9 pr-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
+                            className={`block w-full pl-9 pr-9 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
                               formErrors.endereco_rua ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.endereco_rua}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('endereco_rua') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                           {formErrors.endereco_rua ? (
                             <span className="text-red-500 font-medium">{formErrors.endereco_rua}</span>
                           ) : (
@@ -1322,7 +1441,7 @@ export default function App() {
                       {/* Cidade */}
                       <div className="col-span-12 sm:col-span-8 md:col-span-4 space-y-1.5 relative">
                         <label htmlFor="endereco_cidade" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Cidade / Município <span className="text-blue-500 font-bold">*</span>
+                          Cidade / Município <span className="text-teal-500 font-bold">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1335,7 +1454,7 @@ export default function App() {
                             maxLength={100}
                             placeholder="Pesquise para autocompletar..."
                             autoComplete="off"
-                            className={`block w-full pl-9 pr-8 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
+                            className={`block w-full pl-9 pr-8 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 ${styles.input} ${
                               formErrors.endereco_cidade ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.endereco_cidade}
@@ -1345,10 +1464,16 @@ export default function App() {
                             }}
                             onFocus={() => setShowMunicipiosDropdown(true)}
                           />
-                          {isSearchingMunicipios && (
+                          {isSearchingMunicipios ? (
                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-zinc-500">
-                              <RefreshCw className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin text-teal-500" />
                             </div>
+                          ) : (
+                            isFieldValid('endereco_cidade') && (
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                                <CheckCircle className="h-4 w-4" />
+                              </div>
+                            )
                           )}
                         </div>
 
@@ -1404,11 +1529,11 @@ export default function App() {
                                         }`}
                                       >
                                         <div className="flex items-center gap-1.5 min-w-0 mr-2">
-                                          <MapPin className="h-3 w-3 text-blue-500 shrink-0" />
+                                          <MapPin className="h-3 w-3 text-teal-500 shrink-0" />
                                           <span className="truncate font-medium">{m.nome}</span>
                                         </div>
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 transition-colors uppercase font-mono ${
-                                          isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-605'
+                                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded border shrink-0 transition-colors uppercase font-mono ${
+                                          isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-405' : 'bg-zinc-105 border-zinc-200 text-zinc-600'
                                         }`}>
                                           {m.uf}
                                         </span>
@@ -1421,7 +1546,7 @@ export default function App() {
                           )}
                         </AnimatePresence>
 
-                        <div className={`text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                           {formErrors.endereco_cidade ? (
                             <span className="text-red-500 font-medium">{formErrors.endereco_cidade}</span>
                           ) : supabaseError ? (
@@ -1430,8 +1555,8 @@ export default function App() {
                             </span>
                           ) : (
                             formState.municipio_codigo_ibge ? (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 font-sans">
-                                <MapPin className="h-3 w-3 text-emerald-550 dark:text-emerald-400 shrink-0" />
+                              <span className="text-emerald-600 dark:text-emerald-300 font-medium flex items-center gap-1 font-sans">
+                                <MapPin className="h-3 w-3 text-emerald-555 dark:text-emerald-400 shrink-0" />
                                 Município vinculado por IBGE: {formState.municipio_codigo_ibge}
                               </span>
                             ) : (
@@ -1444,23 +1569,28 @@ export default function App() {
                       {/* UF/Estado */}
                       <div className="col-span-12 sm:col-span-4 md:col-span-2 space-y-1.5">
                         <label htmlFor="endereco_uf" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Estado (UF) <span className="text-blue-500 font-bold">*</span>
+                          Estado (UF) <span className="text-teal-500 font-bold">*</span>
                         </label>
-                        <div>
+                        <div className="relative">
                           <input
                             id="endereco_uf"
                             name="endereco_uf"
                             type="text"
                             maxLength={2}
                             placeholder="SP"
-                            className={`block w-full px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-colors duration-150 uppercase font-mono font-semibold ${styles.input} ${
+                            className={`block w-full pl-3 pr-8 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-colors duration-150 uppercase font-mono font-semibold ${styles.input} ${
                               formErrors.endereco_uf ? 'border-red-500/80 ring-1 ring-red-500/10' : ''
                             }`}
                             value={formState.endereco_uf}
                             onChange={handleInputChange}
                           />
+                          {isFieldValid('endereco_uf') && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                              <CheckCircle className="h-4 w-4" />
+                            </div>
+                          )}
                         </div>
-                        <div className={`text-[10px] px-1 pt-0.5 ${styles.subText}`}>
+                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                           {formErrors.endereco_uf ? (
                             <span className="text-red-500 font-medium">{formErrors.endereco_uf}</span>
                           ) : (
@@ -1484,7 +1614,7 @@ export default function App() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="px-5 py-2 rounded-lg bg-blue-600 font-bold uppercase tracking-wider text-xs text-white hover:bg-blue-505 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-blue-900/20"
+                        className="px-5 py-2 rounded-lg bg-teal-600 font-bold uppercase tracking-wider text-xs text-white hover:bg-teal-500 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-teal-900/10 dark:shadow-teal-950/20"
                       >
                         {loading ? (
                           <>
@@ -1511,10 +1641,10 @@ export default function App() {
       </main>
 
       {/* Footer copyright */}
-      <footer className={`border-t py-5 text-center text-[10px] px-4 mt-auto transition-colors ${isDark ? 'border-zinc-950 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
+      <footer className={`border-t py-5 text-center text-xs px-4 mt-auto transition-colors ${isDark ? 'border-zinc-950 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
         <p className="font-mono uppercase tracking-wider">© 2026 CadExpress Ltda. Todos os direitos reservados.</p>
         <p className={`mt-1 transition-colors ${isDark ? 'text-zinc-600' : 'text-zinc-500'}`}>
-          Feito com 💙. Conexão de dados encriptada via SSL diretamente com o Supabase.
+          Feito com 💚. Conexão de dados encriptada via SSL diretamente com o Supabase.
         </p>
       </footer>
 
@@ -1537,9 +1667,9 @@ export default function App() {
                 </p>
                 <div className={`text-xs font-medium p-2.5 rounded-lg my-1.5 font-sans border transition-colors ${isDark ? 'text-zinc-200 bg-zinc-900 border-zinc-900' : 'text-zinc-805 bg-zinc-50 border-zinc-200'}`}>
                   <span className="block font-semibold">{deletingCliente.nome}</span>
-                  <span className={`text-[10px] font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>CPF: {deletingCliente.cpf}</span>
+                  <span className={`text-xs font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>CPF: {deletingCliente.cpf}</span>
                 </div>
-                <p className="text-[10px] text-red-500">
+                <p className="text-xs text-red-500">
                   ⚠️ Esta ação não poderá ser desfeita e os dados serão excluídos permanentemente.
                 </p>
               </div>

@@ -1,11 +1,11 @@
-# CadExpress 🚀 (v1.0-RC)
+# CadExpress 🚀 (Versão 1.0)
 
 Sistema corporativo de controle de cadastros, integrado em tempo real com **Supabase** e integrado à tabela de municípios do **IBGE**. Escrito em **React + Vite**, com **TypeScript** e estilizado com **Tailwind CSS**.
 
 ---
 
 ## 📅 Histórico de Versão
-* **Versão:** `v1.0-RC` (Release Candidate)
+* **Versão:** `Versão 1.0`
 * **Objetivo:** Integração nativa e mapeamento resiliente de campos com as tabelas Supabase existentes (mantendo total integridade conceitual e de persistência sem necessidade de alterar colunas legadas no banco).
 
 ---
