@@ -1589,10 +1589,11 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                      <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
-                        <span>{formErrors.nome ? <span className="text-red-500 font-medium">{formErrors.nome}</span> : 'Utilizado em termos e relatórios oficiais'}</span>
-                        <span className="font-mono">{formState.nome.length}/150</span>
-                      </div>
+                      {formErrors.nome && (
+                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                          <span className="text-red-500 font-medium">{formErrors.nome}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Grupo Duplo: CPF (max 14) + RG Identidade (max 20) */}
@@ -1625,10 +1626,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          <span>{formErrors.cpf ? <span className="text-red-500 font-medium">{formErrors.cpf}</span> : 'Validação automática de dígitos'}</span>
-                          <span className="font-mono">{formState.cpf.length}/14</span>
-                        </div>
+                        {formErrors.cpf && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                            <span className="text-red-500 font-medium">{formErrors.cpf}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Identidade / RG (max 20) */}
@@ -1658,10 +1660,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          <span>{formErrors.identidade ? <span className="text-red-500 font-medium">{formErrors.identidade}</span> : 'Órgão emissor oficial'}</span>
-                          <span className="font-mono">{formState.identidade.length}/20</span>
-                        </div>
+                        {formErrors.identidade && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                            <span className="text-red-500 font-medium">{formErrors.identidade}</span>
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -1696,10 +1699,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          <span>{formErrors.telefone ? <span className="text-red-500 font-medium">{formErrors.telefone}</span> : 'Incluso ddd (ex: 11)'}</span>
-                          <span className="font-mono">{formState.telefone.length}/15</span>
-                        </div>
+                        {formErrors.telefone && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                            <span className="text-red-500 font-medium">{formErrors.telefone}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Email (max 100) */}
@@ -1729,10 +1733,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`flex justify-between text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          <span>{formErrors.email ? <span className="text-red-500 font-medium">{formErrors.email}</span> : 'Opcional. Verificação padrão de domínio'}</span>
-                          <span className="font-mono">{formState.email.length}/100</span>
-                        </div>
+                        {formErrors.email && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                            <span className="text-red-500 font-medium">{formErrors.email}</span>
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -1763,13 +1768,11 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                      <div className={`text-[10px] px-1 pt-0.5 ${styles.subText}`}>
-                        {formErrors.data_nascimento ? (
+                      {formErrors.data_nascimento && (
+                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                           <span className="text-red-500 font-medium">{formErrors.data_nascimento}</span>
-                        ) : (
-                          'O calendário impede seleção de datas futuras'
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Linha 5: Endereço Detalhado (Logradouro, Cidade, UF) */}
@@ -1802,13 +1805,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          {formErrors.endereco_rua ? (
+                        {formErrors.endereco_rua && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                             <span className="text-red-500 font-medium">{formErrors.endereco_rua}</span>
-                          ) : (
-                            <span>Nome da rua, número e nome do bairro</span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Cidade */}
@@ -1919,24 +1920,22 @@ export default function App() {
                           )}
                         </AnimatePresence>
 
-                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          {formErrors.endereco_cidade ? (
-                            <span className="text-red-500 font-medium">{formErrors.endereco_cidade}</span>
-                          ) : supabaseError ? (
-                            <span className="text-yellow-500 dark:text-yellow-400/90 font-medium font-sans">
-                              {supabaseError}
-                            </span>
-                          ) : (
-                            formState.municipio_codigo_ibge ? (
+                        {(formErrors.endereco_cidade || supabaseError || formState.municipio_codigo_ibge) && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
+                            {formErrors.endereco_cidade ? (
+                              <span className="text-red-500 font-medium">{formErrors.endereco_cidade}</span>
+                            ) : supabaseError ? (
+                              <span className="text-yellow-500 dark:text-yellow-400/90 font-medium font-sans">
+                                {supabaseError}
+                              </span>
+                            ) : formState.municipio_codigo_ibge ? (
                               <span className="text-emerald-600 dark:text-emerald-300 font-medium flex items-center gap-1 font-sans">
                                 <MapPin className="h-3 w-3 text-emerald-555 dark:text-emerald-400 shrink-0" />
                                 Município vinculado por IBGE: {formState.municipio_codigo_ibge}
                               </span>
-                            ) : (
-                              <span>Busca dinâmica na tabela municipios (singular / plural)</span>
-                            )
-                          )}
-                        </div>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
 
                       {/* UF/Estado */}
@@ -1963,13 +1962,11 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
-                          {formErrors.endereco_uf ? (
+                        {formErrors.endereco_uf && (
+                          <div className={`text-xs px-1 pt-0.5 ${styles.subText}`}>
                             <span className="text-red-500 font-medium">{formErrors.endereco_uf}</span>
-                          ) : (
-                            <span>Sigla (ex: RJ)</span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
 
                     </div>
