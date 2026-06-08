@@ -14,9 +14,14 @@
 
 body {
   font-family: var(--font-sans);
+  background-color: #faf7f2; /* Default to Soft Warm Sepia/Cream (Comfort) */
+  color: #2c2724; /* Default to Soft Warm Charcoal (Comfort) */
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+body.light {
   background-color: #f8fafc; /* Slate 50 light background */
   color: #0f172a; /* Slate 900 light text */
-  transition: background-color 200ms ease, color 200ms ease;
 }
 
 body.dark {
@@ -27,7 +32,6 @@ body.dark {
 body.comfort {
   background-color: #faf7f2; /* Soft Warm Sepia/Cream */
   color: #2c2724; /* Soft Warm Charcoal for resting eyes */
-  transition: background-color 200ms ease, color 200ms ease;
 }
 
 /* Custom scrollbar to match our premium aesthetics per-theme */
