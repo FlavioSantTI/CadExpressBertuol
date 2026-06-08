@@ -12,10 +12,9 @@ import { ClienteTemp, MunicipioType } from './types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// A valid supabase URL typically ends with .supabase.co or is configured by the user
+// Accept any set URL & Key to be resilient (e.g. custom domains, docker setups, correct variables)
 export const isSupabaseConfigured = !!(
   supabaseUrl && 
-  (supabaseUrl.includes('supabase.co') || supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1')) && 
   supabaseAnonKey
 );
 

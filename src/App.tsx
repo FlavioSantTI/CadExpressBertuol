@@ -330,9 +330,7 @@ export default function App() {
       errors.endereco = 'Endereço incompleto.';
     }
 
-    if (!formState.email.trim()) {
-      errors.email = 'O E-mail é obrigatório.';
-    } else if (!validateEmail(formState.email)) {
+    if (formState.email.trim() && !validateEmail(formState.email)) {
       errors.email = 'Endereço de e-mail inválido. Utilize o formato: nome@provedor.com.';
     }
 
@@ -530,7 +528,7 @@ export default function App() {
                 CadExpress
               </h1>
               <p className={`text-[10px] uppercase font-mono tracking-wider transition-colors ${styles.subText}`}>
-                Painel de Controle Corporativo · Supabase CRM
+                Painel de Controle Corporativo · Migração Odonto Marques
               </p>
             </div>
           </div>
@@ -543,7 +541,7 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>v0.8.1-RC</span>
+              <span>v1.0-RC</span>
             </div>
             
             {/* Theme Toggle Button */}
@@ -1230,7 +1228,7 @@ export default function App() {
                       {/* Email (max 100) */}
                       <div className="space-y-1.5">
                         <label htmlFor="email" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          E-mail Corporativo <span className="text-blue-500 font-bold">*</span>
+                          E-mail
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1250,7 +1248,7 @@ export default function App() {
                           />
                         </div>
                         <div className={`flex justify-between text-[10px] px-1 pt-0.5 ${styles.subText}`}>
-                          <span>{formErrors.email ? <span className="text-red-500 font-medium">{formErrors.email}</span> : 'Verificação padrão de domínio'}</span>
+                          <span>{formErrors.email ? <span className="text-red-500 font-medium">{formErrors.email}</span> : 'Opcional. Verificação padrão de domínio'}</span>
                           <span className="font-mono">{formState.email.length}/100</span>
                         </div>
                       </div>
