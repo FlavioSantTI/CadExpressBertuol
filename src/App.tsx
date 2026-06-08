@@ -163,18 +163,6 @@ export default function App() {
     }
   };
 
-  const calculateFormProgress = () => {
-    let filled = 0;
-    const total = 6; // Nome, CPF, Telefone, Rua, Cidade, UF (obrigatorios)
-    if (isFieldValid('nome')) filled++;
-    if (isFieldValid('cpf')) filled++;
-    if (isFieldValid('telefone')) filled++;
-    if (isFieldValid('endereco_rua')) filled++;
-    if (isFieldValid('endereco_cidade')) filled++;
-    if (isFieldValid('endereco_uf')) filled++;
-    return Math.round((filled / total) * 100);
-  };
-
   const styles = {
     bg: theme === 'dark' 
       ? 'bg-zinc-950 text-zinc-100' 
@@ -1539,41 +1527,6 @@ export default function App() {
                         Limpar Edição
                       </button>
                     )}
-                  </div>
-
-                  {/* Form Completeness / Progress Bar */}
-                  <div className={`p-3 rounded-lg border mb-5 transition-all ${
-                    isDark ? 'bg-zinc-950/40 border-zinc-900/60' : 'bg-slate-50 border-zinc-150 shadow-sm'
-                  }`}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`font-mono text-[10px] uppercase tracking-wider font-semibold ${isDark ? 'text-zinc-500' : 'text-zinc-405'}`}>
-                        Progresso do Preenchimento
-                      </span>
-                      <span className={`font-mono text-xs font-bold ${
-                        calculateFormProgress() === 100 ? 'text-teal-500' : 'text-amber-500'
-                      }`}>
-                        {calculateFormProgress()}%
-                      </span>
-                    </div>
-                    {/* The track */}
-                    <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                      {/* The fill */}
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${calculateFormProgress()}%` }}
-                        transition={{ duration: 0.3 }}
-                        className={`h-full rounded-full ${
-                          calculateFormProgress() === 100 
-                            ? 'bg-gradient-to-r from-teal-400 to-teal-600 shadow-sm' 
-                            : 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm'
-                        }`}
-                      />
-                    </div>
-                    <p className={`text-[10px] mt-2 italic leading-tight ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>
-                      {calculateFormProgress() === 100 
-                        ? '🎉 Excelente! Todos os campos obrigatórios estão preenchidos.'
-                        : `Preencha os ${7 - Math.round(calculateFormProgress() * 7 / 100)} campo(s) obrigatório(s) restante(s).`}
-                    </p>
                   </div>
 
                   {/* Fluxo Contínuo de Digitação Box */}
