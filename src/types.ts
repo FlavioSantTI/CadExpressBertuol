@@ -16,7 +16,7 @@ export interface ClienteTemp {
   telefone: string; // Formato (00) 00000-0000 (Max 15)
   endereco: string; // Max 255 chars
   email: string; // Formato padrão @ (Max 100)
-  identidade: string; // Max 20 chars (RG etc.)
+  identidade?: string | null; // Max 20 chars (RG etc.)
   data_nascimento?: string | null; // Data de nascimento real (YYYY-MM-DD), older than today
   created_at?: string; // Date of inclusion
   municipio_codigo_ibge?: number | null;

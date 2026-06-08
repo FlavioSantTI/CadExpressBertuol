@@ -24,18 +24,47 @@ body.dark {
   color: #f4f4f5; /* Zinc 100 soft white text */
 }
 
-/* Custom scrollbar to match our premium dark mode aesthetics */
+body.comfort {
+  background-color: #faf7f2; /* Soft Warm Sepia/Cream */
+  color: #2c2724; /* Soft Warm Charcoal for resting eyes */
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Custom scrollbar to match our premium aesthetics per-theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-::-webkit-scrollbar-track {
+
+body.dark ::-webkit-scrollbar-track {
   background: #09090b;
 }
-::-webkit-scrollbar-thumb {
+body.dark ::-webkit-scrollbar-thumb {
   background: #27272a;
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
+body.dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
+}
+
+body.comfort ::-webkit-scrollbar-track {
+  background: #faf7f2;
+}
+body.comfort ::-webkit-scrollbar-thumb {
+  background: #eadfd0;
+  border-radius: 3px;
+}
+body.comfort ::-webkit-scrollbar-thumb:hover {
+  background: #d0c0a9;
+}
+
+body.light ::-webkit-scrollbar-track, body:not(.dark):not(.comfort) ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+body.light ::-webkit-scrollbar-thumb, body:not(.dark):not(.comfort) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+body.light ::-webkit-scrollbar-thumb:hover, body:not(.dark):not(.comfort) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

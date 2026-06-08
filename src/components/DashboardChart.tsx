@@ -9,7 +9,7 @@ import { formatToBRLDate } from '../utils';
 
 interface DashboardChartProps {
   clientes: ClienteTemp[];
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'comfort';
 }
 
 export function DashboardChart({ clientes, theme }: DashboardChartProps) {
@@ -21,12 +21,29 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
   } | null>(null);
 
   const isDark = theme === 'dark';
+  const isComfort = theme === 'comfort';
 
   // Dynamic theme aware styling color tokens
-  const gridStroke = isDark ? '#18181b' : '#f1f5f9'; // Zinc 900 vs Slate 100
-  const axisStroke = isDark ? '#27272a' : '#cbd5e1'; // Zinc 800 vs Slate 300
-  const textFill = isDark ? '#71717a' : '#475569'; // Zinc 500 vs Slate 600
-  const labelFill = isDark ? '#52525b' : '#64748b'; // Zinc 600 vs Slate 500
+  const gridStroke = isDark 
+    ? '#18181b' 
+    : isComfort 
+      ? '#eadfd0' 
+      : '#f1f5f9'; // Zinc 900 vs Comfort border vs Slate 100
+  const axisStroke = isDark 
+    ? '#27272a' 
+    : isComfort 
+      ? '#dcd1bf' 
+      : '#cbd5e1'; // Zinc 800 vs Slate 300
+  const textFill = isDark 
+    ? '#71717a' 
+    : isComfort 
+      ? '#8e8071' 
+      : '#475569'; // Zinc 500 vs Slate 600
+  const labelFill = isDark 
+    ? '#52525b' 
+    : isComfort 
+      ? '#a69784' 
+      : '#64748b'; // Zinc 600 vs Slate 500
 
   // Parse and compute accumulated registrations over time
   const chartData = useMemo(() => {
@@ -121,12 +138,18 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
 
   if (clientes.length === 0) {
     return (
-      <div className={`flex flex-col items-center justify-center h-48 rounded-xl border p-6 text-center ${isDark ? 'border-zinc-900 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-50 text-zinc-500'}`}>
-        <svg className={`h-10 w-10 mb-2 ${isDark ? 'text-zinc-800' : 'text-zinc-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className={`flex flex-col items-center justify-center h-48 rounded-xl border p-6 text-center ${
+        isDark 
+          ? 'border-zinc-900 bg-zinc-950 text-zinc-500' 
+          : isComfort
+            ? 'border-[#EADFD0] bg-[#FAF8F5] text-[#8E8071]'
+            : 'border-zinc-200 bg-zinc-50 text-zinc-500'
+      }`}>
+        <svg className={`h-10 w-10 mb-2 ${isDark ? 'text-zinc-850' : isComfort ? 'text-[#DCD1BF]' : 'text-zinc-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
         </svg>
         <span className="text-sm font-medium">Sem dados para exibir o gráfico</span>
-        <span className="text-xs text-zinc-500 mt-1">Cadastre clientes para gerar o histórico acumulado no tempo</span>
+        <span className="text-xs mt-1 opacity-80">Cadastre clientes para gerar o histórico acumulado no tempo</span>
       </div>
     );
   }
@@ -294,23 +317,29 @@ export function DashboardChart({ clientes, theme }: DashboardChartProps) {
         {/* Dynamic Tooltip */}
         {hoveredPoint && (
           <div 
-            className={`absolute z-10 pointer-events-none rounded-lg border p-2 text-xs shadow-xl transition-all duration-150 ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-black/80' : 'bg-white border-zinc-200 text-zinc-900 shadow-zinc-200'}`}
+            className={`absolute z-10 pointer-events-none rounded-lg border p-2 text-xs shadow-xl transition-all duration-150 ${
+              isDark 
+                ? 'bg-zinc-900 border-zinc-805 text-zinc-100 shadow-black/80' 
+                : isComfort
+                  ? 'bg-[#FAF8F5] border-[#D9CDB8] text-[#2C2724] shadow-md shadow-[#ECE1D0]'
+                  : 'bg-white border-zinc-200 text-zinc-900 shadow-zinc-200'
+            }`}
             style={{
               left: `${(hoveredPoint.x / chartWidth) * 100}%`,
               top: `${(hoveredPoint.y / chartHeight) * 100 - 30}%`,
               transform: 'translate(-50%, -100%)'
             }}
           >
-            <div className="font-semibold text-teal-500">
+            <div className="font-semibold text-teal-600 dark:text-teal-400">
               {hoveredPoint.count} {hoveredPoint.count === 1 ? 'Cliente' : 'Clientes'}
             </div>
-            <div className={`text-[10px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+            <div className={`text-[10px] mt-0.5 ${isDark ? 'text-zinc-400' : isComfort ? 'text-[#8E8071]' : 'text-zinc-500'}`}>
               Acumulado em {formatToBRLDate(hoveredPoint.date)}
             </div>
           </div>
         )}
       </div>
-      <div className={`flex justify-between text-[11px] px-4 mt-2 font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+      <div className={`flex justify-between text-[11px] px-4 mt-2 font-mono ${isDark ? 'text-zinc-500' : isComfort ? 'text-[#8E8071]' : 'text-zinc-400'}`}>
         <span>Início do Período</span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-teal-500"></span> 

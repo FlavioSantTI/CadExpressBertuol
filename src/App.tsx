@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Users, 
   UserPlus, 
@@ -45,23 +45,32 @@ import {
 import { DashboardChart } from './components/DashboardChart';
 
 export default function App() {
-  // Theme state
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  // Theme state supporting Comfort (Eye-Care Sepia) Mode
+  const [theme, setTheme] = useState<'light' | 'dark' | 'comfort'>(() => {
     const saved = localStorage.getItem('crm-theme');
-    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+    return (saved === 'light' || saved === 'dark' || saved === 'comfort') ? saved : 'comfort';
   });
 
   useEffect(() => {
     localStorage.setItem('crm-theme', theme);
     const body = document.body;
-    if (theme === 'dark') {
-      body.classList.add('dark');
-      body.classList.remove('light');
-    } else {
-      body.classList.add('light');
-      body.classList.remove('dark');
-    }
+    body.classList.remove('light', 'dark', 'comfort');
+    body.classList.add(theme);
   }, [theme]);
+
+  // Ref for automated continuous workflow and speed-focusing
+  const nomeInputRef = useRef<HTMLInputElement>(null);
+  const [lastSavedClient, setLastSavedClient] = useState<string | null>(null);
+  
+  // Continuous typing mode to maximize typist speed and avoid mouse clicks
+  const [fluxoContinuo, setFluxoContinuo] = useState<boolean>(() => {
+    const saved = localStorage.getItem('crm-fluxo-continuo');
+    return saved === 'false' ? false : true; // default to true for maximum efficiency
+  });
+
+  useEffect(() => {
+    localStorage.setItem('crm-fluxo-continuo', String(fluxoContinuo));
+  }, [fluxoContinuo]);
 
   // State elements
   const [clientes, setClientes] = useState<ClienteTemp[]>([]);
@@ -116,6 +125,7 @@ export default function App() {
   const [isDeletingLoading, setIsDeletingLoading] = useState<boolean>(false);
 
   const isDark = theme === 'dark';
+  const isComfort = theme === 'comfort';
 
   const isFieldValid = (field: string) => {
     switch (field) {
@@ -155,10 +165,9 @@ export default function App() {
 
   const calculateFormProgress = () => {
     let filled = 0;
-    const total = 7; // Nome, CPF, Identidade, Telefone, Rua, Cidade, UF (obrigatorios)
+    const total = 6; // Nome, CPF, Telefone, Rua, Cidade, UF (obrigatorios)
     if (isFieldValid('nome')) filled++;
     if (isFieldValid('cpf')) filled++;
-    if (isFieldValid('identidade')) filled++;
     if (isFieldValid('telefone')) filled++;
     if (isFieldValid('endereco_rua')) filled++;
     if (isFieldValid('endereco_cidade')) filled++;
@@ -167,35 +176,116 @@ export default function App() {
   };
 
   const styles = {
-    bg: isDark ? 'bg-zinc-950 text-zinc-100' : 'bg-slate-50 text-zinc-900',
-    headerBg: isDark ? 'border-zinc-900 bg-zinc-900/40' : 'border-zinc-200 bg-white/85 shadow-sm',
-    headerText: isDark ? 'text-white' : 'text-zinc-900',
-    subText: isDark ? 'text-zinc-500' : 'text-zinc-650',
-    card: isDark ? 'border-zinc-900 bg-zinc-900/40 text-zinc-100' : 'border-zinc-200 bg-white text-zinc-805 shadow-sm',
-    cardTitle: isDark ? 'text-white' : 'text-zinc-900',
-    cardMeta: isDark ? 'text-zinc-400' : 'text-zinc-550',
-    chartCard: isDark ? 'border-zinc-950 bg-zinc-900/10' : 'border-zinc-200 bg-white shadow-sm',
-    badge: isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600',
-    dbCard: isDark ? 'border-zinc-900 bg-zinc-900/20' : 'border-zinc-200 bg-zinc-100/50 shadow-inner',
-    code: isDark ? 'text-teal-400 bg-zinc-950 border-zinc-900' : 'text-teal-600 bg-zinc-100 border-zinc-200',
-    input: isDark ? 'bg-zinc-950 border-zinc-850 text-zinc-200 placeholder-zinc-650 focus:ring-teal-500' : 'bg-white border-zinc-300 text-zinc-800 placeholder-zinc-400 focus:ring-teal-500 shadow-sm',
-    tableBorder: isDark ? 'border-zinc-950' : 'border-zinc-200',
-    tableHeaderBg: isDark ? 'bg-zinc-900/40 border-b border-zinc-900 text-zinc-400' : 'bg-zinc-100/80 border-b border-zinc-200 text-zinc-600',
-    tableRowBg: isDark ? 'hover:bg-zinc-900/40 bg-zinc-950/20 text-zinc-300 border-zinc-900/40' : 'hover:bg-zinc-50 bg-white text-zinc-700 border-zinc-100',
-    listCard: isDark ? 'border-zinc-900 bg-zinc-900/10 hover:border-zinc-800' : 'border-zinc-200 bg-white hover:border-zinc-300 shadow-sm',
-    modalBg: isDark ? 'border-zinc-900 bg-zinc-950' : 'border-zinc-200 bg-white shadow-2xl',
+    bg: theme === 'dark' 
+      ? 'bg-zinc-950 text-zinc-100' 
+      : theme === 'comfort'
+        ? 'bg-[#E5DEC9] text-[#2C2724]' 
+        : 'bg-slate-50 text-zinc-900',
+    headerBg: theme === 'dark' 
+      ? 'border-zinc-900 bg-zinc-900/40' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C] bg-[#FAF3E0]/90 shadow-sm'
+        : 'border-zinc-200 bg-white/85 shadow-sm',
+    headerText: theme === 'dark' 
+      ? 'text-white font-bold' 
+      : theme === 'comfort'
+        ? 'text-[#2C2724] font-bold'
+        : 'text-zinc-900 font-bold',
+    subText: theme === 'dark' 
+      ? 'text-zinc-500' 
+      : theme === 'comfort'
+        ? 'text-[#78695A]'
+        : 'text-zinc-650',
+    card: theme === 'dark' 
+      ? 'border-zinc-900 bg-zinc-900/40 text-zinc-100' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C] bg-[#FAF3E0] text-[#2C2724] shadow-sm'
+        : 'border-zinc-200 bg-white text-zinc-805 shadow-sm',
+    cardTitle: theme === 'dark' 
+      ? 'text-white' 
+      : theme === 'comfort'
+        ? 'text-[#2C2724]'
+        : 'text-zinc-900',
+    cardMeta: theme === 'dark' 
+      ? 'text-zinc-400' 
+      : theme === 'comfort'
+        ? 'text-[#78695A]'
+        : 'text-zinc-555',
+    chartCard: theme === 'dark' 
+      ? 'border-zinc-950 bg-zinc-900/10' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C] bg-[#FAF3E0] shadow-sm'
+        : 'border-zinc-200 bg-white shadow-sm',
+    badge: theme === 'dark' 
+      ? 'bg-zinc-900 border-zinc-800 text-zinc-400' 
+      : theme === 'comfort'
+        ? 'bg-[#ECE2CE] border-[#C4B49C] text-[#78695A]'
+        : 'bg-zinc-100 border-zinc-200 text-zinc-600',
+    dbCard: theme === 'dark' 
+      ? 'border-zinc-900 bg-zinc-900/20' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C] bg-[#ECE2CE]'
+        : 'border-zinc-200 bg-zinc-100/50 shadow-inner',
+    code: theme === 'dark' 
+      ? 'text-teal-400 bg-zinc-950 border-zinc-900' 
+      : theme === 'comfort'
+        ? 'text-teal-700 bg-[#FAF3E0] border-[#C4B49C]'
+        : 'text-teal-600 bg-zinc-100 border-zinc-200',
+    input: theme === 'dark' 
+      ? 'bg-zinc-950 border-zinc-850 text-zinc-200 placeholder-zinc-650 focus:ring-teal-500' 
+      : theme === 'comfort'
+        ? 'bg-[#FFFDF9] border-[#C4B49C] text-[#2C2724] placeholder-[#A69784] focus:ring-teal-500 focus:border-teal-500'
+        : 'bg-white border-zinc-300 text-zinc-800 placeholder-zinc-400 focus:ring-teal-500 shadow-sm',
+    tableBorder: theme === 'dark' 
+      ? 'border-zinc-950' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C]'
+        : 'border-zinc-200',
+    tableHeaderBg: theme === 'dark' 
+      ? 'bg-zinc-900/40 border-b border-zinc-900 text-zinc-404' 
+      : theme === 'comfort'
+        ? 'bg-[#ECE2CE]/85 border-b border-[#C4B49C] text-[#5C4D3C]'
+        : 'bg-zinc-100/80 border-b border-zinc-200 text-zinc-600',
+    tableRowBg: theme === 'dark' 
+      ? 'hover:bg-zinc-900/40 bg-zinc-950/20 text-zinc-300 border-zinc-900/40' 
+      : theme === 'comfort'
+        ? 'hover:bg-[#EAE0CD] bg-[#FAF3E0] text-[#2C2724] border-[#ECE2CE]'
+        : 'hover:bg-zinc-50 bg-white text-zinc-700 border-zinc-100',
+    listCard: theme === 'dark' 
+      ? 'border-zinc-900 bg-zinc-900/10 hover:border-zinc-800' 
+      : theme === 'comfort'
+        ? 'border-[#C4B49C] bg-[#FAF3E0] hover:border-[#B3A289] shadow-sm'
+        : 'border-zinc-200 bg-white hover:border-zinc-300 shadow-sm',
+    modalBg: theme === 'dark' 
+      ? 'border-zinc-900 bg-zinc-950' 
+      : theme === 'comfort'
+        ? 'border-[#B3A289] bg-[#FAF3E0] shadow-2xl'
+        : 'border-zinc-200 bg-white shadow-2xl',
+    label: theme === 'dark' 
+      ? 'text-zinc-400 font-semibold' 
+      : theme === 'comfort'
+        ? 'text-[#5C4D3C] font-bold'
+        : 'text-zinc-700 font-semibold',
   };
 
   const getTabClasses = (tab: 'dashboard' | 'list' | 'form') => {
     const isActive = activeTab === tab;
     if (isActive) {
-      return isDark
-        ? 'bg-zinc-900 border-zinc-800 text-teal-400 shadow-sm border-b-2 border-b-teal-500'
-        : 'bg-white border-zinc-200 text-teal-600 shadow-sm border-b-2 border-b-teal-500';
+      if (theme === 'dark') {
+        return 'bg-zinc-900 border-zinc-800 text-teal-400 shadow-sm border-b-2 border-b-teal-500';
+      } else if (theme === 'comfort') {
+        return 'bg-[#FAF3E0] border-[#C4B49C] text-teal-800 shadow-sm border-b-2 border-b-teal-600';
+      } else {
+        return 'bg-white border-zinc-200 text-teal-600 shadow-sm border-b-2 border-b-teal-500';
+      }
     } else {
-      return isDark
-        ? 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/30'
-        : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-800 hover:bg-zinc-200/50';
+      if (theme === 'dark') {
+        return 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/30';
+      } else if (theme === 'comfort') {
+        return 'bg-transparent border-transparent text-[#78695A] hover:text-[#2C2724] hover:bg-[#ECE2CE]/50';
+      } else {
+        return 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-800 hover:bg-zinc-200/50';
+      }
     }
   };
 
@@ -383,8 +473,8 @@ export default function App() {
       errors.email = 'Endereço de e-mail inválido. Utilize o formato: nome@provedor.com.';
     }
 
-    if (!formState.identidade.trim()) {
-      errors.identidade = 'O documento de Identidade (RG) é obrigatório.';
+    if (formState.identidade.trim() && formState.identidade.trim().length < 2) {
+      errors.identidade = 'O documento de Identidade (RG) deve conter no mínimo 2 caracteres.';
     }
 
     if (formState.data_nascimento) {
@@ -428,18 +518,35 @@ export default function App() {
         // Edit mode save
         await dbService.updateCliente(currentEditingId, dataPayload);
         showGlobalSuccess(`Dados do cliente "${dataPayload.nome}" atualizados com sucesso!`);
+        // Reset form states
+        resetForm();
+        // Reload listing
+        await loadData();
+        // Switch back to index list screen
+        setActiveTab('list');
       } else {
-        // Create mode save
+        // Create mode save - Continuous data entry workflow for extreme productivity
         await dbService.createCliente(dataPayload);
-        showGlobalSuccess(`Cliente "${dataPayload.nome}" cadastrado com sucesso!`);
+        
+        const summary = `${dataPayload.nome} (CPF: ${dataPayload.cpf})`;
+        setLastSavedClient(summary);
+        
+        // Reset form fields first
+        resetForm();
+        // Reload listing
+        await loadData();
+        
+        if (fluxoContinuo) {
+          showGlobalSuccess(`Cliente "${dataPayload.nome}" cadastrado com sucesso! Formulário pronto para o próximo registro.`);
+          // Focus the name field immediately for continuous keyboard typing without any mouse interaction
+          setTimeout(() => {
+            nomeInputRef.current?.focus();
+          }, 100);
+        } else {
+          showGlobalSuccess(`Cliente "${dataPayload.nome}" cadastrado com sucesso! Retornando para a listagem.`);
+          setActiveTab('list');
+        }
       }
-
-      // Reset form states
-      resetForm();
-      // Reload listing
-      await loadData();
-      // Switch back to index list screen
-      setActiveTab('list');
     } catch (err: any) {
       console.error('Erro ao salvar:', err);
       const detail = err && (err.message || err.details || String(err));
@@ -473,20 +580,20 @@ export default function App() {
   const initiateEdit = (cliente: ClienteTemp) => {
     if (!cliente.id) return;
     const parsed = parseEndereco(cliente.endereco);
-    const cidadeName = cliente.municipios?.nome_ibge || parsed.cidade;
-    const ufName = cliente.municipios?.uf || parsed.uf;
+    const cbNome = cliente.municipios?.nome_ibge || parsed.cidade;
+    const cbUf = cliente.municipios?.uf || parsed.uf;
 
     setCurrentEditingId(cliente.id);
     setFormState({
-      nome: cliente.nome,
-      cpf: cliente.cpf,
-      telefone: cliente.telefone,
-      endereco: cliente.endereco,
-      endereco_rua: parsed.rua,
-      endereco_cidade: cidadeName,
-      endereco_uf: ufName,
-      email: cliente.email,
-      identidade: cliente.identidade,
+      nome: cliente.nome || '',
+      cpf: cliente.cpf || '',
+      telefone: cliente.telefone || '',
+      endereco: cliente.endereco || '',
+      endereco_rua: parsed.rua || '',
+      endereco_cidade: cbNome || '',
+      endereco_uf: cbUf || '',
+      email: cliente.email || '',
+      identidade: cliente.identidade || '',
       data_nascimento: cliente.data_nascimento || '',
       municipio_codigo_ibge: cliente.municipio_codigo_ibge || null
     });
@@ -590,22 +697,55 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>Versão 1.0</span>
+              <span>Versão 2.0</span>
             </div>
             
-            {/* Theme Toggle Button */}
-            <button 
-              onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer shadow-sm flex items-center justify-center ${isDark ? 'bg-zinc-900 border-zinc-805 text-zinc-400 hover:text-white' : 'bg-white border-zinc-200 text-zinc-655 hover:text-zinc-900 hover:bg-zinc-50'}`}
-              style={{ width: '30px', height: '30px' }}
-              title={theme === 'dark' ? 'Mudar para Tema Claro' : 'Mudar para Tema Escuro'}
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-3.5 w-3.5 text-amber-400" />
-              ) : (
-                <Moon className="h-3.5 w-3.5 text-teal-600" />
-              )}
-            </button>
+            {/* Controladores de Tema (Claro, Conforto, Escuro) */}
+            <div className={`flex items-center rounded-lg p-0.5 border ${
+              theme === 'dark' 
+                ? 'bg-zinc-900 border-zinc-800' 
+                : theme === 'comfort' 
+                  ? 'bg-[#C4B49C] border-[#BFAF98]' 
+                  : 'bg-zinc-100 border-zinc-200'
+            }`}>
+              <button 
+                onClick={() => setTheme('light')}
+                className={`py-1 px-2 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                  theme === 'light' 
+                    ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' 
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+                title="Modo Claro Tradicional"
+              >
+                Claro
+              </button>
+              <button 
+                onClick={() => setTheme('comfort')}
+                className={`py-1 px-2 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                  theme === 'comfort' 
+                    ? 'bg-[#FAF3E0] text-[#2C2724] shadow-sm border border-[#C4B49C]' 
+                    : theme === 'dark'
+                      ? 'text-zinc-400 hover:text-zinc-200'
+                      : 'text-zinc-500 hover:text-[#5C4D3C]'
+                }`}
+                title="Modo Conforto Visual (Sépia/Papel)"
+              >
+                Conforto 🍃
+              </button>
+              <button 
+                onClick={() => setTheme('dark')}
+                className={`py-1 px-2 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                  theme === 'dark' 
+                    ? 'bg-zinc-950 text-white shadow-sm border border-zinc-800' 
+                    : theme === 'comfort'
+                      ? 'text-[#78695A] hover:text-[#2C2724]'
+                      : 'text-zinc-550 hover:text-zinc-800'
+                }`}
+                title="Modo Escuro (Contraste Suave)"
+              >
+                Escuro
+              </button>
+            </div>
 
             <button 
               onClick={() => loadData()}
@@ -680,7 +820,13 @@ export default function App() {
             >
               <Users className="h-3.5 w-3.5" />
               <span>Lista de Clientes</span>
-              <span className={`ml-1 px-1.5 py-0.5 text-xs rounded-md font-mono ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-500'}`}>
+              <span className={`ml-1 px-1.5 py-0.5 text-xs rounded-md font-mono ${
+                isDark 
+                  ? 'bg-zinc-805 text-zinc-400' 
+                  : isComfort
+                    ? 'bg-[#ECE2CE] text-[#5C4D3C]'
+                    : 'bg-zinc-100 text-zinc-500'
+              }`}>
                 {clientes.length}
               </span>
             </button>
@@ -726,7 +872,13 @@ export default function App() {
                       </span>
                       <span className={`text-xs transition-colors ${styles.cardMeta}`}>ativos</span>
                     </div>
-                    <div className={`text-xs mt-2 font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                    <div className={`text-xs mt-2 font-mono transition-colors ${
+                      isDark 
+                        ? 'text-zinc-500' 
+                        : isComfort
+                          ? 'text-[#78695A]'
+                          : 'text-zinc-400'
+                    }`}>
                       Meta Atual Amostral: 100
                     </div>
                   </div>
@@ -746,7 +898,13 @@ export default function App() {
                       </span>
                       {statistics.averageAge !== null && <span className={`text-xs transition-colors ${styles.cardMeta}`}>anos</span>}
                     </div>
-                    <div className={`text-xs mt-2 transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                    <div className={`text-xs mt-2 transition-colors ${
+                      isDark 
+                        ? 'text-zinc-500' 
+                        : isComfort
+                          ? 'text-[#78695A]'
+                          : 'text-zinc-400'
+                    }`}>
                       {statistics.averageAge !== null 
                         ? 'Baseado nas datas de nascimento' 
                         : 'Sem informações de idade'}
@@ -768,7 +926,13 @@ export default function App() {
                       </span>
                     </div>
                     <div className={`text-xs mt-2 truncate max-w-full transition-colors ${styles.subText}`}>
-                      Último: <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{statistics.lastRegistered}</span>
+                      Último: <span className={`font-semibold ${
+                        isDark 
+                          ? 'text-white' 
+                          : isComfort
+                            ? 'text-[#2C2724] font-bold'
+                            : 'text-zinc-900'
+                      }`}>{statistics.lastRegistered}</span>
                     </div>
                   </div>
                 </div>
@@ -784,7 +948,13 @@ export default function App() {
                         Curva acumulativa baseada na propriedade temporal de controle
                       </p>
                     </div>
-                    <span className={`text-xs uppercase tracking-wider border px-2.5 py-1 rounded font-mono transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-slate-50 border-zinc-200 text-zinc-600'}`}>
+                     <span className={`text-xs uppercase tracking-wider border px-2.5 py-1 rounded font-mono transition-colors ${
+                      isDark 
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-405' 
+                        : isComfort
+                          ? 'bg-[#ECE2CE] border-[#C4B49C] text-[#78695A]'
+                          : 'bg-slate-50 border-zinc-200 text-zinc-600'
+                    }`}>
                       Frequência: Diária
                     </span>
                   </div>
@@ -803,21 +973,39 @@ export default function App() {
 
                 {/* Database Info guidelines & setup */}
                 <div className={`rounded-xl border p-5 flex flex-col md:flex-row md:items-center gap-4 transition-colors ${styles.dbCard}`}>
-                   <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800 text-teal-400' : 'bg-zinc-100 border-zinc-200 text-teal-600'}`}>
+                   <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center border transition-colors ${
+                     isDark 
+                       ? 'bg-zinc-900 border-zinc-800 text-teal-400' 
+                       : isComfort
+                         ? 'bg-[#E5DEC9] border-[#C4B49C] text-teal-700'
+                         : 'bg-zinc-100 border-zinc-200 text-teal-600'
+                   }`}>
                     <Database className="h-5 w-5" />
                   </div>
                   <div>
                     <h4 className={`text-xs font-bold uppercase tracking-wider font-display transition-colors ${styles.headerText}`}>
                       Arquitetura do Banco de Dados
                     </h4>
-                    <p className={`text-xs mt-0.5 max-w-2xl leading-relaxed transition-colors ${isDark ? 'text-zinc-400' : 'text-zinc-655'}`}>
+                    <p className={`text-xs mt-0.5 max-w-2xl leading-relaxed transition-colors ${
+                      isDark 
+                        ? 'text-zinc-400' 
+                        : isComfort
+                          ? 'text-[#5C4D3C]'
+                          : 'text-zinc-655'
+                    }`}>
                       Os clientes criados são sincronizados em tempo real diretamente com a tabela <code className={`font-mono px-1.5 py-0.5 rounded border transition-colors ${styles.code}`}>clientes_temp</code> do seu projeto Supabase. Na ausência de credenciais no seu arquivo <code className={`font-mono transition-colors ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>.env</code>, salvamos em cache local para que seu fluxo de testes funcione perfeitamente.
                     </p>
                   </div>
                   <div className="ml-auto flex items-center shrink-0">
                     <button 
                       onClick={() => setActiveTab('list')}
-                      className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'}`}
+                      className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                        isDark 
+                          ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-white' 
+                          : isComfort
+                            ? 'bg-[#ECE2CE] hover:bg-[#E0D4C0] border-[#C4B49C] text-[#2C2724]'
+                            : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'
+                      }`}
                     >
                       <span>Visualizar Lista</span>
                       <ChevronRight className="h-3.5 w-3.5 text-teal-500" />
@@ -856,7 +1044,13 @@ export default function App() {
                     {searchQuery && (
                       <button 
                         onClick={() => handleSearchChange('')}
-                        className={`absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer ${isDark ? 'text-zinc-555 hover:text-white' : 'text-zinc-400 hover:text-zinc-700'}`}
+                        className={`absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer ${
+                          isDark 
+                            ? 'text-zinc-555 hover:text-white' 
+                            : isComfort
+                              ? 'text-[#78695A] hover:text-[#2C2724]'
+                              : 'text-zinc-400 hover:text-zinc-700'
+                        }`}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -867,7 +1061,13 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={toggleSortOrder}
-                      className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border transition-all select-none cursor-pointer duration-150 ${isDark ? 'bg-zinc-950 hover:bg-zinc-900 text-zinc-305 border-zinc-805 hover:text-white' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-300 hover:text-zinc-950'}`}
+                      className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border transition-all select-none cursor-pointer duration-150 ${
+                        isDark 
+                          ? 'bg-zinc-950 hover:bg-zinc-900 text-zinc-305 border-zinc-805 hover:text-white' 
+                          : isComfort
+                            ? 'bg-[#ECE2CE] hover:bg-[#E0D4C0] text-[#2C2724] border-[#C4B49C]'
+                            : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-300 hover:text-zinc-950'
+                      }`}
                     >
                       <ArrowUpDown className="h-3.5 w-3.5 text-teal-500" />
                       <span>Data: {sortOrder === 'desc' ? 'Novos Primeiro' : 'Antigos Primeiro'}</span>
@@ -887,7 +1087,13 @@ export default function App() {
                 {/* Sub-counter indicators */}
                 <div className={`flex justify-between items-center text-xs px-1 font-mono uppercase tracking-wider ${styles.subText}`}>
                   <span>
-                    No de clientes: <strong className={`font-sans font-semibold transition-colors ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>{clientes.length}</strong>
+                    No de clientes: <strong className={`font-sans font-semibold transition-colors ${
+                      isDark 
+                        ? 'text-zinc-300' 
+                        : isComfort
+                          ? 'text-[#2C2724] font-bold'
+                          : 'text-zinc-700'
+                    }`}>{clientes.length}</strong>
                   </span>
                   {searchQuery && (
                     <span className="text-teal-500 font-semibold lowercase">
@@ -904,7 +1110,13 @@ export default function App() {
                   </div>
                 ) : clientes.length === 0 ? (
                   <div className={`flex flex-col items-center justify-center p-16 rounded-xl border text-center transition-colors ${styles.chartCard}`}>
-                    <div className={`h-10 w-10 rounded-full border flex items-center justify-center mb-3 transition-colors ${isDark ? 'bg-zinc-950 border-zinc-900 text-zinc-600' : 'bg-slate-50 border-zinc-200 text-zinc-400'}`}>
+                    <div className={`h-10 w-10 rounded-full border flex items-center justify-center mb-3 transition-colors ${
+                      isDark 
+                        ? 'bg-zinc-950 border-zinc-900 text-zinc-600' 
+                        : isComfort
+                          ? 'bg-[#ECE2CE] border-[#C4B49C] text-[#78695A]'
+                          : 'bg-slate-50 border-zinc-200 text-zinc-400'
+                    }`}>
                       <Search className="h-5 w-5" />
                     </div>
                     <span className={`text-sm font-semibold font-display font-medium transition-colors ${styles.headerText}`}>Nenhum cliente cadastrado</span>
@@ -928,7 +1140,13 @@ export default function App() {
                     {/* Tablet/Desktop Table View: Hidden on small screens */}
                     <div className={`hidden md:block overflow-hidden rounded-xl border transition-colors ${styles.chartCard}`}>
                       <div className="overflow-x-auto">
-                        <table className={`min-w-full divide-y text-left text-xs ${isDark ? 'divide-zinc-900/60 text-zinc-300' : 'divide-zinc-200 text-zinc-705'}`}>
+                        <table className={`min-w-full divide-y text-left text-xs ${
+                          isDark 
+                            ? 'divide-zinc-900/60 text-zinc-300' 
+                            : isComfort
+                              ? 'divide-[#EADFD0] text-[#2C2724]'
+                              : 'divide-zinc-200 text-zinc-705'
+                        }`}>
                           <thead className={`font-mono uppercase tracking-wider text-xs transition-colors ${styles.tableHeaderBg}`}>
                             <tr>
                               <th scope="col" className="px-4 py-3.5 font-bold">Identificação</th>
@@ -939,52 +1157,98 @@ export default function App() {
                               <th scope="col" className="px-4 py-3.5 text-right font-bold">Ações</th>
                             </tr>
                           </thead>
-                          <tbody className={`divide-y ${isDark ? 'divide-zinc-900/40 bg-zinc-950/20' : 'divide-zinc-200 bg-white'}`}>
+                          <tbody className={`divide-y ${
+                            isDark 
+                              ? 'divide-zinc-900/40 bg-zinc-950/20' 
+                              : isComfort
+                                ? 'divide-[#EADFD0] bg-[#FAF8F5]/30'
+                                : 'divide-zinc-200 bg-white'
+                          }`}>
                             {clientes.map((c) => (
-                              <tr key={c.id} className={`transition-colors border-b ${isDark ? 'hover:bg-zinc-900/40 border-zinc-950/40' : 'hover:bg-zinc-50 border-zinc-250/20'}`}>
+                              <tr key={c.id} className={`transition-colors border-b ${styles.tableRowBg}`}>
                                 {/* Name, CPF */}
                                 <td className="px-4 py-3">
-                                  <div className={`font-semibold text-sm max-w-[170px] truncate ${isDark ? 'text-white' : 'text-zinc-900'}`} title={c.nome}>
+                                  <div className={`font-semibold text-sm max-w-[170px] truncate ${
+                                    isDark 
+                                      ? 'text-white' 
+                                      : isComfort
+                                        ? 'text-[#2C2724] font-bold'
+                                        : 'text-zinc-900'
+                                  }`} title={c.nome}>
                                     {c.nome}
                                   </div>
-                                  <div className="text-xs text-zinc-500 font-mono mt-0.5" title="CPF">
+                                  <div className={`text-xs font-mono mt-0.5 ${isComfort ? 'text-[#8E8071]' : 'text-zinc-500'}`} title="CPF">
                                     {c.cpf}
                                   </div>
                                 </td>
 
                                 {/* Email, Phone */}
                                 <td className="px-4 py-3 space-y-0.5">
-                                  <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-250' : 'text-zinc-800'}`}>
-                                    <Phone className="h-3 w-3 text-teal-500 shrink-0" />
+                                  <div className={`flex items-center gap-1.5 ${
+                                    isDark 
+                                      ? 'text-zinc-250' 
+                                      : isComfort
+                                        ? 'text-[#2C2724]'
+                                        : 'text-zinc-800'
+                                  }`}>
+                                    <Phone className="h-3 w-3 text-teal-555 shrink-0" />
                                     <span className="font-mono">{c.telefone}</span>
                                   </div>
-                                  <div className={`flex items-center gap-1.5 overflow-hidden max-w-[140px] ${isDark ? 'text-zinc-400' : 'text-zinc-550'}`} title={c.email}>
-                                    <Mail className="h-3 w-3 text-zinc-500 shrink-0" />
+                                  <div className={`flex items-center gap-1.5 overflow-hidden max-w-[140px] ${
+                                    isDark 
+                                      ? 'text-zinc-400' 
+                                      : isComfort
+                                        ? 'text-[#5C4D3C]'
+                                        : 'text-zinc-550'
+                                  }`} title={c.email}>
+                                    <Mail className="h-3 w-3 text-zinc-400 shrink-0" />
                                     <span className="truncate text-xs">{c.email}</span>
                                   </div>
                                 </td>
 
                                 {/* RG, Nascimento */}
                                 <td className="px-4 py-3 space-y-0.5">
-                                  <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                    <FileText className="h-3 w-3 text-teal-500 shrink-0" />
+                                  <div className={`flex items-center gap-1.5 ${
+                                    isDark 
+                                      ? 'text-zinc-200' 
+                                      : isComfort
+                                        ? 'text-[#2C2724]'
+                                        : 'text-zinc-800'
+                                  }`}>
+                                    <FileText className="h-3 w-3 text-teal-555 shrink-0" />
                                     <span>RG: {c.identidade}</span>
                                   </div>
-                                  <div className={`flex items-center gap-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-550'}`}>
-                                    <Calendar className="h-3 w-3 text-zinc-500 shrink-0" />
+                                  <div className={`flex items-center gap-1.5 ${
+                                    isDark 
+                                      ? 'text-zinc-400' 
+                                      : isComfort
+                                        ? 'text-[#5C4D3C]'
+                                        : 'text-zinc-550'
+                                  }`}>
+                                    <Calendar className="h-3 w-3 text-zinc-400 shrink-0" />
                                     <span>Nasc: {formatToBRLDate(c.data_nascimento)}</span>
                                   </div>
                                 </td>
 
                                 {/* Address */}
                                 <td className="px-4 py-3">
-                                  <div className={`max-w-[160px] line-clamp-2 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`} title={c.endereco}>
+                                  <div className={`max-w-[160px] line-clamp-2 leading-relaxed ${
+                                    isDark 
+                                      ? 'text-zinc-400' 
+                                      : isComfort
+                                        ? 'text-[#5C4D3C]'
+                                        : 'text-zinc-650'
+                                  }`} title={c.endereco}>
                                     {c.endereco}
                                   </div>
                                   {c.municipio_codigo_ibge ? (
                                     <span 
                                       className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
-                                        isDark ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-teal-50 text-teal-600 border border-teal-100'
+                                        isDark 
+                                          ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
+                                          : isComfort
+                                            ? 'bg-teal-500/10 text-teal-705 border border-teal-500/20'
+                                            : 'bg-teal-50 text-teal-600 border border-teal-100'
                                       }`}
                                       title={`Código IBGE do Município: ${c.municipio_codigo_ibge}`}
                                     >
@@ -992,14 +1256,22 @@ export default function App() {
                                       IBGE: {c.municipio_codigo_ibge}
                                     </span>
                                   ) : (
-                                    <span className={`block mt-1 text-xs italic ${isDark ? 'text-zinc-650' : 'text-zinc-400'}`}>
+                                    <span className={`block mt-1 text-xs italic ${
+                                      isDark 
+                                        ? 'text-zinc-650' 
+                                        : isComfort
+                                          ? 'text-[#8E8071]'
+                                          : 'text-zinc-400'
+                                    }`}>
                                       Sem município vinculado
                                     </span>
                                   )}
                                 </td>
 
                                 {/* Timestamp inclusao */}
-                                <td className="px-4 py-3 text-zinc-500 font-mono text-xs">
+                                <td className={`px-4 py-3 font-mono text-xs ${
+                                  isComfort ? 'text-[#8E8071]' : 'text-zinc-500'
+                                }`}>
                                   {formatTimestampToBRL(c.created_at)}
                                 </td>
 
@@ -1008,14 +1280,26 @@ export default function App() {
                                   <div className="flex items-center justify-end gap-1">
                                     <button
                                       onClick={() => initiateEdit(c)}
-                                      className={`p-1 px-2 rounded-lg border transition-colors cursor-pointer ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700 hover:text-zinc-950'}`}
+                                      className={`p-1 px-2 rounded-lg border transition-colors cursor-pointer ${
+                                        isDark 
+                                          ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white' 
+                                          : isComfort
+                                            ? 'bg-[#F2ECE0]/80 hover:bg-[#E6DEC2] border-[#DCD1BF] text-[#2C2724]'
+                                            : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700 hover:text-zinc-950'
+                                      }`}
                                       title="Editar Cadastro"
                                     >
                                       <Edit className="h-3.5 w-3.5 text-teal-500" />
                                     </button>
                                     <button
                                       onClick={() => setDeletingCliente(c)}
-                                      className={`p-1 px-2 rounded-lg border transition-colors cursor-pointer ${isDark ? 'bg-red-950/25 hover:bg-red-950/45 border-red-950/20 text-rose-400 hover:text-rose-200' : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-650'}`}
+                                      className={`p-1 px-2 rounded-lg border transition-colors cursor-pointer ${
+                                        isDark 
+                                          ? 'bg-red-950/25 hover:bg-red-950/45 border-red-950/20 text-rose-400 hover:text-rose-200' 
+                                          : isComfort
+                                            ? 'bg-red-500/10 hover:bg-red-500/25 border-red-500/20 text-red-650 hover:text-red-800'
+                                            : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-650'
+                                      }`}
                                       title="Excluir Cadastro"
                                     >
                                       <Trash2 className="h-3.5 w-3.5" />
@@ -1038,10 +1322,16 @@ export default function App() {
                         >
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <h4 className={`font-bold text-sm leading-snug ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                              <h4 className={`font-bold text-sm leading-snug ${
+                                isDark 
+                                  ? 'text-white' 
+                                  : isComfort
+                                    ? 'text-[#2C2724] font-bold'
+                                    : 'text-zinc-900'
+                              }`}>
                                 {c.nome}
                               </h4>
-                              <p className="text-xs text-zinc-500 font-mono mt-0.5">
+                              <p className={`text-xs font-mono mt-0.5 ${isComfort ? 'text-[#8E8071]' : 'text-zinc-500'}`}>
                                 CPF: {c.cpf}
                               </p>
                             </div>
@@ -1050,58 +1340,158 @@ export default function App() {
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
                                 onClick={() => initiateEdit(c)}
-                                className={`p-1.5 rounded-lg border cursor-pointer transition-colors ${isDark ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-200 hover:text-white' : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'}`}
+                                className={`p-1.5 rounded-lg border cursor-pointer transition-colors ${
+                                  isDark 
+                                    ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-805 text-zinc-200 hover:text-white' 
+                                    : isComfort
+                                      ? 'bg-[#F2ECE0]/85 hover:bg-[#E6DEC2] border-[#DCD1BF] text-[#2C2724]'
+                                      : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'
+                                }`}
                               >
                                 <Edit className="h-3.5 w-3.5 text-teal-500" />
                               </button>
                               <button
                                 onClick={() => setDeletingCliente(c)}
-                                className={`p-1.5 rounded-lg border cursor-pointer transition-colors ${isDark ? 'bg-red-950/15 hover:bg-red-950/30 border-red-950/20 text-rose-450 hover:text-rose-250' : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-600'}`}
+                                className={`p-1.5 rounded-lg border cursor-pointer transition-colors ${
+                                  isDark 
+                                    ? 'bg-red-950/15 hover:bg-red-950/30 border-red-950/20 text-rose-450 hover:text-rose-250' 
+                                    : isComfort
+                                      ? 'bg-red-500/15 hover:bg-red-500/30 border-red-500/20 text-red-655 font-semibold'
+                                      : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-650'
+                                }`}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
 
-                          <div className={`grid grid-cols-2 gap-2 text-xs border-t pt-2 transition-colors ${isDark ? 'border-zinc-900/60 text-zinc-400' : 'border-zinc-150 text-zinc-650'}`}>
+                          <div className={`grid grid-cols-2 gap-2 text-xs border-t pt-2 transition-colors ${
+                            isDark 
+                              ? 'border-zinc-900/60 text-zinc-400' 
+                              : isComfort
+                                ? 'border-[#EADFD0] text-[#8E8071]'
+                                : 'border-zinc-150 text-zinc-650'
+                          }`}>
                             <div>
-                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Telefone</span>
-                              <span className={`font-mono font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{c.telefone}</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${
+                                isDark 
+                                  ? 'text-zinc-555' 
+                                  : isComfort
+                                    ? 'text-[#8E8071]'
+                                    : 'text-zinc-450'
+                              }`}>Telefone</span>
+                              <span className={`font-mono font-medium ${
+                                isDark 
+                                  ? 'text-zinc-200' 
+                                  : isComfort
+                                    ? 'text-[#2C2724]'
+                                    : 'text-zinc-800'
+                              }`}>{c.telefone}</span>
                             </div>
                             <div>
-                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>E-mail</span>
-                              <span className={`truncate block max-w-full font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`} title={c.email}>{c.email}</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${
+                                isDark 
+                                  ? 'text-zinc-555' 
+                                  : isComfort
+                                    ? 'text-[#8E8071]'
+                                    : 'text-zinc-450'
+                              }`}>E-mail</span>
+                              <span className={`truncate block max-w-full font-medium ${
+                                isDark 
+                                  ? 'text-zinc-200' 
+                                  : isComfort
+                                    ? 'text-[#2C2724]'
+                                    : 'text-zinc-800'
+                              }`} title={c.email}>{c.email}</span>
                             </div>
                             <div className="mt-1">
-                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Identidade</span>
-                              <span className={`font-medium ${isDark ? 'text-zinc-350' : 'text-zinc-700'}`}>{c.identidade}</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${
+                                isDark 
+                                  ? 'text-zinc-555' 
+                                  : isComfort
+                                    ? 'text-[#8E8071]'
+                                    : 'text-zinc-450'
+                              }`}>Identidade</span>
+                              <span className={`font-medium ${
+                                isDark 
+                                  ? 'text-zinc-350' 
+                                  : isComfort
+                                    ? 'text-[#2C2724]'
+                                    : 'text-zinc-700'
+                              }`}>{c.identidade}</span>
                             </div>
                             <div className="mt-1">
-                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Nascimento</span>
-                              <span className={`font-medium ${isDark ? 'text-zinc-350' : 'text-zinc-700'}`}>{formatToBRLDate(c.data_nascimento)}</span>
+                              <span className={`block uppercase tracking-wider text-[10px] font-mono ${
+                                isDark 
+                                  ? 'text-zinc-555' 
+                                  : isComfort
+                                    ? 'text-[#8E8071]'
+                                    : 'text-zinc-450'
+                              }`}>Nascimento</span>
+                              <span className={`font-medium ${
+                                isDark 
+                                  ? 'text-zinc-350' 
+                                  : isComfort
+                                    ? 'text-[#2C2724]'
+                                    : 'text-zinc-700'
+                              }`}>{formatToBRLDate(c.data_nascimento)}</span>
                             </div>
                           </div>
 
-                          <div className={`text-xs p-2.5 rounded-lg border space-y-1 transition-colors ${isDark ? 'bg-zinc-950/60 border-zinc-900/85 text-zinc-400' : 'bg-zinc-50 border-zinc-150 text-zinc-650'}`}>
+                          <div className={`text-xs p-2.5 rounded-lg border space-y-1 transition-colors ${
+                            isDark 
+                              ? 'bg-zinc-950/60 border-zinc-900/85 text-zinc-400' 
+                              : isComfort
+                                ? 'bg-[#F2ECE0]/60 border-[#DCD1BF] text-[#5C4D3C]'
+                                : 'bg-zinc-50 border-zinc-150 text-zinc-650'
+                          }`}>
                             <div>
-                              <span className={`uppercase tracking-wider text-[10px] font-mono block ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>Endereço</span>
-                              <p className={`leading-snug text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-750'}`}>{c.endereco}</p>
+                              <span className={`uppercase tracking-wider text-[10px] font-mono block ${
+                                isDark 
+                                  ? 'text-zinc-500' 
+                                  : isComfort
+                                    ? 'text-[#8E8071]'
+                                    : 'text-zinc-450'
+                              }`}>Endereço</span>
+                              <p className={`leading-snug text-xs ${
+                                isDark 
+                                  ? 'text-zinc-300' 
+                                  : isComfort
+                                    ? 'text-[#2C2724]'
+                                    : 'text-zinc-750'
+                              }`}>{c.endereco}</p>
                               {c.municipio_codigo_ibge ? (
                                 <span 
                                   className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
-                                    isDark ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' : 'bg-teal-50 text-teal-600 border border-teal-100'
+                                    isDark 
+                                      ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
+                                      : isComfort
+                                        ? 'bg-teal-500/10 text-teal-705 border border-teal-500/20'
+                                        : 'bg-teal-50 text-teal-600 border border-teal-100'
                                   }`}
                                 >
                                   <MapPin className="h-2.5 w-2.5 text-teal-500 shrink-0" />
                                   IBGE: {c.municipio_codigo_ibge}
                                 </span>
                               ) : (
-                                <span className={`block mt-1 text-xs italic ${isDark ? 'text-zinc-655' : 'text-zinc-405'}`}>
+                                <span className={`block mt-1 text-xs italic ${
+                                  isDark 
+                                    ? 'text-zinc-655' 
+                                    : isComfort
+                                      ? 'text-[#8E8071]'
+                                      : 'text-zinc-405'
+                                }`}>
                                   Sem município vinculado
                                 </span>
                               )}
                             </div>
-                            <div className={`text-xs font-mono pt-1 text-right border-t ${isDark ? 'border-zinc-900/40 text-zinc-500' : 'border-zinc-205 text-zinc-500'}`}>
+                            <div className={`text-xs font-mono pt-1 text-right border-t ${
+                              isDark 
+                                ? 'border-zinc-900/40 text-zinc-500' 
+                                : isComfort
+                                  ? 'border-[#DCD1BF]/60 text-[#8E8071]'
+                                  : 'border-zinc-205 text-zinc-500'
+                            }`}>
                               Inclusão: {formatTimestampToBRL(c.created_at)}
                             </div>
                           </div>
@@ -1186,12 +1576,41 @@ export default function App() {
                     </p>
                   </div>
 
+                  {/* Fluxo Contínuo de Digitação Box */}
+                  {lastSavedClient && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`mb-5 p-3.5 rounded-xl border flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center shadow-sm ${
+                        theme === 'comfort' 
+                          ? 'border-[#C2D6C0] bg-[#FAF8F5] text-[#3E342B]' 
+                          : 'border-teal-500/30 bg-teal-500/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-teal-550/10 flex items-center justify-center text-teal-600 shrink-0">
+                          <CheckCircle className="h-4 w-4 text-teal-500 shrink-0" />
+                        </div>
+                        <div>
+                          <p className={`font-semibold ${theme === 'comfort' ? 'text-teal-800' : 'text-teal-700 dark:text-teal-400'}`}>Último cliente salvo com sucesso:</p>
+                          <p className={`font-mono mt-0.5 opacity-90 ${theme === 'comfort' ? 'text-[#5C4D3C]' : 'text-zinc-655 dark:text-zinc-300'}`}>{lastSavedClient}</p>
+                        </div>
+                      </div>
+                      <div className="flex sm:flex-col items-start sm:items-end gap-1.5 sm:gap-0 mt-1 sm:mt-0">
+                        <span className="inline-block px-2 py-0.5 rounded text-[9px] font-mono bg-teal-650 text-white font-bold uppercase tracking-wider">
+                          Pronto p/ Próximo
+                        </span>
+                        <p className={`text-[10px] mt-0.5 font-mono ${theme === 'comfort' ? 'text-[#8E8071]' : 'text-zinc-500'}`}>Teclado focado automáticamente</p>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Form Wrapper */}
                   <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
                     
                     {/* Linha 1: Nome Completo (max 150) */}
                     <div className="space-y-1.5">
-                      <label htmlFor="nome" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+                      <label htmlFor="nome" className={`block text-xs font-semibold ${theme === 'comfort' ? 'text-[#5C4D3C]' : isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
                         Nome Completo <span className="text-teal-500 font-bold">*</span>
                       </label>
                       <div className="relative">
@@ -1199,6 +1618,7 @@ export default function App() {
                           <User className="h-4 w-4" />
                         </div>
                         <input
+                          ref={nomeInputRef}
                           id="nome"
                           name="nome"
                           type="text"
@@ -1261,7 +1681,7 @@ export default function App() {
                       {/* Identidade / RG (max 20) */}
                       <div className="space-y-1.5">
                         <label htmlFor="identidade" className={`block font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                          Identidade (RG) <span className="text-teal-500 font-bold">*</span>
+                          Identidade (RG) <span className="text-zinc-400 dark:text-zinc-500 text-[10px] font-normal lowercase">(opcional)</span>
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1602,32 +2022,47 @@ export default function App() {
                     </div>
 
                     {/* Form action buttons */}
-                    <div className={`flex items-center justify-end gap-3 border-t pt-5 mt-6 transition-colors ${isDark ? 'border-zinc-900' : 'border-zinc-200'}`}>
-                      <button
-                        type="button"
-                        onClick={() => { resetForm(); setActiveTab('list'); }}
-                        className={`px-4 py-2 border rounded-lg transition-colors cursor-pointer text-xs font-semibold ${isDark ? 'border-zinc-800 bg-transparent text-zinc-300 hover:text-white hover:bg-zinc-900' : 'border-zinc-350 bg-transparent text-zinc-700 hover:text-zinc-950 hover:bg-zinc-50'}`}
-                      >
-                        Cancelar
-                      </button>
+                    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t pt-5 mt-6 transition-colors ${isDark ? 'border-zinc-900' : 'border-zinc-200'}`}>
+                      {/* Checkbox de fluxo contínuo para agilizar digitação */}
+                      <label className="inline-flex items-center gap-2 text-xs select-none cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fluxoContinuo}
+                          onChange={(e) => setFluxoContinuo(e.target.checked)}
+                          className="rounded border-zinc-300 text-teal-600 focus:ring-teal-500 h-4.5 w-4.5 cursor-pointer accent-teal-555"
+                        />
+                        <span className={`font-semibold ${theme === 'comfort' ? 'text-[#8E8071]' : 'text-zinc-650 dark:text-zinc-400'}`}>
+                          Modo Digitação Contínua ⚡ (Limpar e re-focar)
+                        </span>
+                      </label>
 
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-5 py-2 rounded-lg bg-teal-600 font-bold uppercase tracking-wider text-xs text-white hover:bg-teal-500 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-teal-900/10 dark:shadow-teal-950/20"
-                      >
-                        {loading ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                            <span>Gravando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="h-4 w-4" />
-                            <span>{currentEditingId ? 'Salvar Alterações' : 'Confirmar Cadastro'}</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-3 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { resetForm(); setActiveTab('list'); }}
+                          className={`px-4 py-2 border rounded-lg transition-colors cursor-pointer text-xs font-semibold ${isDark ? 'border-zinc-800 bg-transparent text-zinc-300 hover:text-white hover:bg-zinc-900' : 'border-zinc-350 bg-transparent text-zinc-700 hover:text-zinc-950 hover:bg-zinc-50'}`}
+                        >
+                          Cancelar
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="px-5 py-2 rounded-lg bg-teal-600 font-bold uppercase tracking-wider text-xs text-white hover:bg-teal-500 transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-teal-900/10 dark:shadow-teal-950/20"
+                        >
+                          {loading ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                              <span>Gravando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4" />
+                              <span>{currentEditingId ? 'Salvar Alterações' : 'Confirmar Cadastro'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                   </form>
@@ -1641,9 +2076,21 @@ export default function App() {
       </main>
 
       {/* Footer copyright */}
-      <footer className={`border-t py-5 text-center text-xs px-4 mt-auto transition-colors ${isDark ? 'border-zinc-950 bg-zinc-950 text-zinc-500' : 'border-zinc-200 bg-zinc-100 text-zinc-600'}`}>
+      <footer className={`border-t py-5 text-center text-xs px-4 mt-auto transition-colors ${
+        isDark 
+          ? 'border-zinc-950 bg-zinc-950 text-zinc-500' 
+          : isComfort
+            ? 'border-[#C4B49C] bg-[#ECE2CE] text-[#78695A]'
+            : 'border-zinc-200 bg-zinc-100 text-zinc-600'
+      }`}>
         <p className="font-mono uppercase tracking-wider">© 2026 CadExpress Ltda. Todos os direitos reservados.</p>
-        <p className={`mt-1 transition-colors ${isDark ? 'text-zinc-600' : 'text-zinc-500'}`}>
+        <p className={`mt-1 transition-colors ${
+          isDark 
+            ? 'text-zinc-600' 
+            : isComfort
+              ? 'text-[#8E8071]'
+              : 'text-zinc-500'
+        }`}>
           Feito com 💚. Conexão de dados encriptada via SSL diretamente com o Supabase.
         </p>
       </footer>
@@ -1654,20 +2101,50 @@ export default function App() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`w-full max-w-sm rounded-xl border p-5 space-y-4 shadow-2xl relative transition-colors ${isDark ? 'border-zinc-900 bg-zinc-950' : 'border-zinc-200 bg-white'}`}
+            className={`w-full max-w-sm rounded-xl border p-5 space-y-4 shadow-2xl relative transition-colors ${
+              isDark 
+                ? 'border-zinc-900 bg-zinc-950' 
+                : isComfort
+                  ? 'border-[#C4B49C] bg-[#FAF3E0] text-[#2C2724]'
+                  : 'border-zinc-200 bg-white'
+            }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border transition-colors ${isDark ? 'bg-red-950/40 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-650'}`}>
+              <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+                isDark 
+                  ? 'bg-red-950/40 border-red-500/20 text-red-400' 
+                  : isComfort
+                    ? 'bg-red-500/10 border-red-500/20 text-red-700'
+                    : 'bg-red-50 border-red-200 text-red-650'
+              }`}>
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="space-y-1">
                 <h3 className={`text-sm font-semibold font-display transition-colors ${styles.headerText}`}>Confirmar Exclusão?</h3>
-                <p className={`text-xs leading-relaxed transition-colors ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                <p className={`text-xs leading-relaxed transition-colors ${
+                  isDark 
+                    ? 'text-zinc-400' 
+                    : isComfort
+                      ? 'text-[#5C4D3C]'
+                      : 'text-zinc-600'
+                }`}>
                   Você está prestes a remover permanentemente o registro de:
                 </p>
-                <div className={`text-xs font-medium p-2.5 rounded-lg my-1.5 font-sans border transition-colors ${isDark ? 'text-zinc-200 bg-zinc-900 border-zinc-900' : 'text-zinc-805 bg-zinc-50 border-zinc-200'}`}>
+                <div className={`text-xs font-medium p-2.5 rounded-lg my-1.5 font-sans border transition-colors ${
+                  isDark 
+                    ? 'text-zinc-200 bg-zinc-900 border-zinc-900' 
+                    : isComfort
+                      ? 'text-[#2C2724] bg-[#ECE2CE] border-[#C4B49C]'
+                      : 'text-zinc-805 bg-zinc-50 border-zinc-200'
+                }`}>
                   <span className="block font-semibold">{deletingCliente.nome}</span>
-                  <span className={`text-xs font-mono transition-colors ${isDark ? 'text-zinc-500' : 'text-zinc-450'}`}>CPF: {deletingCliente.cpf}</span>
+                  <span className={`text-xs font-mono transition-colors ${
+                    isDark 
+                      ? 'text-zinc-500' 
+                      : isComfort
+                        ? 'text-[#78695A]'
+                        : 'text-zinc-450'
+                  }`}>CPF: {deletingCliente.cpf}</span>
                 </div>
                 <p className="text-xs text-red-500">
                   ⚠️ Esta ação não poderá ser desfeita e os dados serão excluídos permanentemente.
@@ -1675,11 +2152,23 @@ export default function App() {
               </div>
             </div>
 
-            <div className={`flex items-center justify-end gap-2 pt-2 border-t text-xs transition-colors ${isDark ? 'border-zinc-900' : 'border-zinc-200'}`}>
+            <div className={`flex items-center justify-end gap-2 pt-2 border-t text-xs transition-colors ${
+              isDark 
+                ? 'border-zinc-900' 
+                : isComfort
+                  ? 'border-[#C4B49C]'
+                  : 'border-zinc-200'
+            }`}>
               <button
                 disabled={isDeletingLoading}
                 onClick={() => setDeletingCliente(null)}
-                className={`px-3.5 py-1.5 rounded-lg border cursor-pointer transition-all ${isDark ? 'border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900' : 'border-zinc-250 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 bg-white'}`}
+                className={`px-3.5 py-1.5 rounded-lg border cursor-pointer transition-all ${
+                  isDark 
+                    ? 'border-zinc-800 text-zinc-404 hover:text-white hover:bg-zinc-900' 
+                    : isComfort
+                      ? 'border-[#C4B49C] text-[#5C4D3C] hover:text-[#2C2724] hover:bg-[#ECE2CE] bg-[#FAF3E0]'
+                      : 'border-zinc-250 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 bg-white'
+                }`}
               >
                 Voltar
               </button>
@@ -1690,8 +2179,8 @@ export default function App() {
               >
                 {isDeletingLoading ? (
                   <>
-                    <RefreshCw className="h-3 w-3 animate-spin" />
-                    <span>Excluindo...</span>
+                     <RefreshCw className="h-3 w-3 animate-spin" />
+                     <span>Excluindo...</span>
                   </>
                 ) : (
                   <>
