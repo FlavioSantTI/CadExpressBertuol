@@ -685,7 +685,7 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>Versão 2.0</span>
+              <span>Versão 3.0</span>
             </div>
             
             {/* Controladores de Tema (Claro, Conforto, Escuro) */}
