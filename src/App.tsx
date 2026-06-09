@@ -1140,7 +1140,7 @@ export default function App() {
                               <th scope="col" className="px-4 py-3.5 font-bold">Identificação</th>
                               <th scope="col" className="px-4 py-3.5 font-bold">Contatos rápidos</th>
                               <th scope="col" className="px-4 py-3.5 font-bold">Documentos & Idade</th>
-                              <th scope="col" className="px-4 py-3.5 font-bold">Geolocalização / Endereço</th>
+                              <th scope="col" className="px-4 py-3.5 font-bold">Endereço</th>
                               <th scope="col" className="px-4 py-3.5 font-bold">Data Inclusão</th>
                               <th scope="col" className="px-4 py-3.5 text-right font-bold">Ações</th>
                             </tr>
@@ -1229,31 +1229,6 @@ export default function App() {
                                   }`} title={c.endereco}>
                                     {c.endereco}
                                   </div>
-                                  {c.municipio_codigo_ibge ? (
-                                    <span 
-                                      className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
-                                        isDark 
-                                          ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
-                                          : isComfort
-                                            ? 'bg-teal-500/10 text-teal-705 border border-teal-500/20'
-                                            : 'bg-teal-50 text-teal-600 border border-teal-100'
-                                      }`}
-                                      title={`Código IBGE do Município: ${c.municipio_codigo_ibge}`}
-                                    >
-                                      <MapPin className="h-2.5 w-2.5 text-teal-500 shrink-0" />
-                                      IBGE: {c.municipio_codigo_ibge}
-                                    </span>
-                                  ) : (
-                                    <span className={`block mt-1 text-xs italic ${
-                                      isDark 
-                                        ? 'text-zinc-650' 
-                                        : isComfort
-                                          ? 'text-[#8E8071]'
-                                          : 'text-zinc-400'
-                                    }`}>
-                                      Sem município vinculado
-                                    </span>
-                                  )}
                                 </td>
 
                                 {/* Timestamp inclusao */}
@@ -1448,30 +1423,6 @@ export default function App() {
                                     ? 'text-[#2C2724]'
                                     : 'text-zinc-750'
                               }`}>{c.endereco}</p>
-                              {c.municipio_codigo_ibge ? (
-                                <span 
-                                  className={`mt-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium tracking-wide ${
-                                    isDark 
-                                      ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' 
-                                      : isComfort
-                                        ? 'bg-teal-500/10 text-teal-705 border border-teal-500/20'
-                                        : 'bg-teal-50 text-teal-600 border border-teal-100'
-                                  }`}
-                                >
-                                  <MapPin className="h-2.5 w-2.5 text-teal-500 shrink-0" />
-                                  IBGE: {c.municipio_codigo_ibge}
-                                </span>
-                              ) : (
-                                <span className={`block mt-1 text-xs italic ${
-                                  isDark 
-                                    ? 'text-zinc-655' 
-                                    : isComfort
-                                      ? 'text-[#8E8071]'
-                                      : 'text-zinc-405'
-                                }`}>
-                                  Sem município vinculado
-                                </span>
-                              )}
                             </div>
                             <div className={`text-xs font-mono pt-1 text-right border-t ${
                               isDark 

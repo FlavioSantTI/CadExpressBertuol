@@ -1,13 +1,14 @@
-# CadExpress 🚀 (Versão 2.0)
+# CadExpress 🚀 (Versão 3.0)
 
 Sistema corporativo de controle de cadastros, integrado em tempo real com **Supabase** e integrado à tabela de municípios do **IBGE**. Escrito em **React + Vite**, com **TypeScript** e estilizado com **Tailwind CSS**.
 
 ---
 
 ## 📅 Histórico de Versão
-* **Versão:** `Versão 2.0`
-* **Objetivo:** Correção de bugs de tratamento de nulos/vazios na inicialização de edição de clientes (correção do erro `TypeError: Cannot read properties of null (reading 'trim')`) e otimização do acoplamento técnico.
-* **Versão anterior:** `Versão 1.0` (Integração inicial com Supabase, mapeamento dinâmico de chaves estrangeiras e do IBGE).
+* **Versão:** `Versão 3.0`
+* **Objetivo:** Refinamentos de usabilidade e minimalismo estético. Definição do tema "Comfort" (Conforto) como padrão na inicialização. Simplificação do formulário através da remoção de contadores de caracteres e textos de ajuda secundários sob as entradas para uma leitura mais fluida. Remoção do card de progresso de preenchimento. Simplificação da lista de clientes ocultando as tags de código IBGE em destaque.
+* **Versão anterior:** `Versão 2.0` (Correção de bugs de tratamento de nulos/vazios na inicialização da edição de clientes e otimização).
+* **Versão anterior:** `Versão 1.0` (Integração nativa de persistência resiliente com tabelas Supabase e IBGE).
 
 ---
 
