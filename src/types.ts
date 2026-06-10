@@ -20,6 +20,8 @@ export interface ClienteTemp {
   data_nascimento?: string | null; // Data de nascimento real (YYYY-MM-DD), older than today
   created_at?: string; // Date of inclusion
   municipio_codigo_ibge?: number | null;
+  status_envio?: string;
+  id_clinicorp?: string | null;
   municipios?: {
     codigo_ibge: number;
     nome_ibge: string;

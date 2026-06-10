@@ -43,6 +43,7 @@ import {
   parseEndereco
 } from './utils';
 import { DashboardChart } from './components/DashboardChart';
+import { RelatorioWhatsApp } from './components/RelatorioWhatsApp';
 
 export default function App() {
   // Theme state supporting Comfort (Eye-Care Sepia) Mode
@@ -75,7 +76,7 @@ export default function App() {
   // State elements
   const [clientes, setClientes] = useState<ClienteTemp[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'form'>('form');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'form' | 'relatorio'>('form');
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -685,7 +686,7 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>Versão 3.0</span>
+              <span>Versão 3.1.1</span>
             </div>
             
             {/* Controladores de Tema (Claro, Conforto, Escuro) */}
@@ -826,6 +827,14 @@ export default function App() {
               <TrendingUp className="h-3.5 w-3.5" />
               <span>Painel de Indicadores</span>
             </button>
+
+            <button
+              onClick={() => { setActiveTab('relatorio'); resetForm(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('relatorio')}`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span>Relatório WhatsApp</span>
+            </button>
           </div>
         </div>
 
@@ -833,6 +842,19 @@ export default function App() {
         <div className="relative">
           <AnimatePresence mode="wait">
             
+            {/* 3. Relatorio Tab */}
+            {activeTab === 'relatorio' && (
+              <motion.div
+                key="relatorio-view"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-6"
+              >
+                <RelatorioWhatsApp clientes={clientes} theme={theme} />
+              </motion.div>
+            )}
+
             {/* 1. Dashboard Tab */}
             {activeTab === 'dashboard' && (
               <motion.div
