@@ -187,12 +187,62 @@ const setLocalClients = (clients: ClienteTemp[]) => {
  */
 export const dbService = {
   /**
+   * Fetch ALL clients for reporting purposes.
+   */
+  async getAllClientes(): Promise<ClienteTemp[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let allData: ClienteTemp[] = [];
+        let page = 0;
+        const limit = 1000;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from('clientes_temp')
+            .select(`
+              *,
+              municipios:municipio_codigo_ibge (
+                codigo_ibge,
+                nome_ibge,
+                uf
+              )
+            `)
+            .range(page * limit, (page + 1) * limit - 1);
+          if (error) throw error;
+          if (data && data.length > 0) {
+            allData = allData.concat(data.map((item: any) => ({
+              ...item,
+              endereco: item.endereco_completo !== undefined ? item.endereco_completo : (item.endereco || ''),
+              telefone: item.telefone_celular !== undefined ? item.telefone_celular : (item.telefone || '')
+            })));
+            if (data.length < limit) {
+              hasMore = false;
+            } else {
+              page++;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+        return allData;
+      } catch (err) {
+        console.error('Failed to fetch all clients from Supabase:', err);
+        return getLocalClients();
+      }
+    } else {
+      return getLocalClients();
+    }
+  },
+
+  /**
    * Fetch listing with optional search by name and sorting by created_at.
    */
-  async getClientes(searchQuery = '', sortOrder: 'asc' | 'desc' = 'desc'): Promise<ClienteTemp[]> {
+  async getClientes(searchQuery = '', sortOrder: 'asc' | 'desc' = 'desc', limit = 20, page = 0): Promise<{ data: ClienteTemp[], count: number }> {
     if (isSupabaseConfigured && supabase) {
       try {
         let data: any[] | null = null;
+        let count = 0;
 
         // Attempt relation join. If the SQL schema script has been run, this works instantly.
         // Otherwise, it catches and executes a pure table select without breaking the UI.
@@ -206,53 +256,60 @@ export const dbService = {
                 nome_ibge,
                 uf
               )
-            `);
+            `, { count: 'exact' });
 
           if (searchQuery.trim() !== '') {
             query = query.ilike('nome', `%${searchQuery}%`);
           }
 
           query = query.order('created_at', { ascending: sortOrder === 'asc' });
+          query = query.range(page * limit, (page + 1) * limit - 1);
 
-          const { data: joinData, error: joinError } = await query;
+          const { data: joinData, error: joinError, count: joinCount } = await query;
           if (joinError) throw joinError;
           data = joinData;
+          count = joinCount || 0;
         } catch (relationErr) {
           console.warn('[getClientes] Failed to select with "municipios" join, running simple fallback select:', relationErr);
           
-          let fallbackQuery = supabase.from('clientes_temp').select('*');
+          let fallbackQuery = supabase.from('clientes_temp').select('*', { count: 'exact' });
           if (searchQuery.trim() !== '') {
             fallbackQuery = fallbackQuery.ilike('nome', `%${searchQuery}%`);
           }
           fallbackQuery = fallbackQuery.order('created_at', { ascending: sortOrder === 'asc' });
+          fallbackQuery = fallbackQuery.range(page * limit, (page + 1) * limit - 1);
 
-          const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+          const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery;
           if (fallbackError) throw fallbackError;
           data = fallbackData;
+          count = fallbackCount || 0;
         }
 
         if (data) {
-          return data.map((item: any) => {
-            return {
-              ...item,
-              endereco: item.endereco_completo !== undefined ? item.endereco_completo : (item.endereco || ''),
-              telefone: item.telefone_celular !== undefined ? item.telefone_celular : (item.telefone || '')
-            } as ClienteTemp;
-          });
+          return {
+            count,
+            data: data.map((item: any) => {
+              return {
+                ...item,
+                endereco: item.endereco_completo !== undefined ? item.endereco_completo : (item.endereco || ''),
+                telefone: item.telefone_celular !== undefined ? item.telefone_celular : (item.telefone || '')
+              } as ClienteTemp;
+            })
+          };
         }
 
-        return [];
+        return { data: [], count: 0 };
       } catch (err) {
         // Fallback to local storage if supabase database fails
         console.error('Supabase getClientes error, falling back to local:', err);
-        return this.getLocalFilteredClients(searchQuery, sortOrder);
+        return this.getLocalFilteredClients(searchQuery, sortOrder, limit, page);
       }
     } else {
-      return this.getLocalFilteredClients(searchQuery, sortOrder);
+      return this.getLocalFilteredClients(searchQuery, sortOrder, limit, page);
     }
   },
 
-  getLocalFilteredClients(searchQuery: string, sortOrder: 'asc' | 'desc'): ClienteTemp[] {
+  getLocalFilteredClients(searchQuery: string, sortOrder: 'asc' | 'desc', limit: number, page: number): { data: ClienteTemp[], count: number } {
     let list = getLocalClients();
     
     // Filter search by "Nome"
@@ -268,23 +325,32 @@ export const dbService = {
       return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
+    const count = list.length;
+
+    // Pagination
+    const startIndex = page * limit;
+    list = list.slice(startIndex, startIndex + limit);
+
     // Augment table with mock relationship structures
-    return list.map(c => {
-      if (c.municipio_codigo_ibge) {
-        const matched = MOCK_MUNICIPIOS.find(m => m.codigo_ibge === c.municipio_codigo_ibge);
-        if (matched) {
-          return {
-            ...c,
-            municipios: {
-              codigo_ibge: matched.codigo_ibge,
-              nome_ibge: matched.nome,
-              uf: matched.uf
-            }
-          };
+    return {
+      count,
+      data: list.map(c => {
+        if (c.municipio_codigo_ibge) {
+          const matched = MOCK_MUNICIPIOS.find(m => m.codigo_ibge === c.municipio_codigo_ibge);
+          if (matched) {
+            return {
+              ...c,
+              municipios: {
+                codigo_ibge: matched.codigo_ibge,
+                nome_ibge: matched.nome,
+                uf: matched.uf
+              }
+            };
+          }
         }
-      }
-      return c;
-    });
+        return c;
+      })
+    };
   },
 
   /**

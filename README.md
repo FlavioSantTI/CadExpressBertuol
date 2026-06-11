@@ -1,15 +1,17 @@
-# CadExpress 🚀 (Versão 3.1.1)
+# CadExpress 🚀 (Versão 3.3.0)
+
 
 Sistema corporativo de controle de cadastros, integrado em tempo real com **Supabase** e integrado à tabela de municípios do **IBGE**. Escrito em **React + Vite**, com **TypeScript** e estilizado com **Tailwind CSS**.
 
 ---
 
 ## 📅 Histórico de Versão
-* **Versão:** `Versão 3.1.1`
-* **Objetivo:** Implementação do Painel Indicadores: Relatório de Disparos de WhatsApp. Adição de visualizações (gráficos de pizza, barras e linha de evolução diária). Listagem de pendências e inconsistências (clientes sem disparo, campos vazios). Resumo executivo com insights.
-* **Versão anterior:** `Versão 3.0` (Refinamentos de usabilidade e minimalismo estético. Definição do tema "Comfort" (Conforto) como padrão. Simplificação do formulário e ocultação tags de código IBGE).
-* **Versão anterior:** `Versão 2.0` (Correção de bugs de tratamento de nulos/vazios na inicialização da edição de clientes e otimização).
-* **Versão anterior:** `Versão 1.0` (Integração nativa de persistência resiliente com tabelas Supabase e IBGE).
+* **Versão:** `Versão 3.3.0`
+* **Objetivo:** Refinações de UX e precisão de dados. Definição da "Lista de Clientes" como página inicial pós-login. Desacoplamento da paginação da listagem de clientes (25 itens) em relação aos indicadores do painel (que agora computam sobre base total). Atualização de labels da UI para Português (PT-BR).
+* **Versão anterior:** `Versão 3.2.0` (Implementação do Painel Indicadores: Relatório de Disparos de WhatsApp. Adição de visualizações (gráficos de pizza, barras e linha de evolução diária). Listagem de pendências e inconsistências (clientes sem disparo, campos vazios). Resumo executivo com insights. Otimização de performance com paginação na listagem de clientes.)
+* **Versão anterior:** `Versão 3.0` (Refinamentos de usabilidade e minimalismo estético.)
+* **Versão anterior:** `Versão 2.0` (Correção de bugs de tratamento de nulos/vazios na inicialização da edição de clientes.)
+* **Versão anterior:** `Versão 1.0` (Integração nativa de persistência resiliente com tabelas Supabase e IBGE.)
 
 ---
 

@@ -44,20 +44,18 @@ import {
 } from './utils';
 import { DashboardChart } from './components/DashboardChart';
 import { RelatorioWhatsApp } from './components/RelatorioWhatsApp';
+import { AuthView } from './components/AuthView';
+import { authService } from './auth';
 
 export default function App() {
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   // Theme state supporting Comfort (Eye-Care Sepia) Mode
   const [theme, setTheme] = useState<'light' | 'dark' | 'comfort'>(() => {
     const saved = localStorage.getItem('crm-theme');
     return (saved === 'light' || saved === 'dark' || saved === 'comfort') ? saved : 'comfort';
   });
-
-  useEffect(() => {
-    localStorage.setItem('crm-theme', theme);
-    const body = document.body;
-    body.classList.remove('light', 'dark', 'comfort');
-    body.classList.add(theme);
-  }, [theme]);
 
   // Ref for automated continuous workflow and speed-focusing
   const nomeInputRef = useRef<HTMLInputElement>(null);
@@ -69,14 +67,13 @@ export default function App() {
     return saved === 'false' ? false : true; // default to true for maximum efficiency
   });
 
-  useEffect(() => {
-    localStorage.setItem('crm-fluxo-continuo', String(fluxoContinuo));
-  }, [fluxoContinuo]);
-
   // State elements
   const [clientes, setClientes] = useState<ClienteTemp[]>([]);
+  const [allClientes, setAllClientes] = useState<ClienteTemp[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'form' | 'relatorio'>('form');
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'relatorio'>('list');
   
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -124,6 +121,134 @@ export default function App() {
   // Delete modal state
   const [deletingCliente, setDeletingCliente] = useState<ClienteTemp | null>(null);
   const [isDeletingLoading, setIsDeletingLoading] = useState<boolean>(false);
+
+  // Load clients lists on mount, filtering and sorting
+  const loadData = React.useCallback(async (query = searchQuery, order = sortOrder, page = currentPage) => {
+    setLoading(true);
+    try {
+      const [ { data, count }, allData ] = await Promise.all([
+        dbService.getClientes(query, order, 25, page),
+        dbService.getAllClientes()
+      ]);
+      setClientes(data);
+      setAllClientes(allData);
+      setTotalCount(count);
+    } catch (err: any) {
+      console.error('Erro geral ao carregar dados:', err);
+      showGlobalError('Falha ao se conectar. Exibindo dados locais seguros.');
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery, sortOrder, currentPage]);
+
+  // Dashboard calculations helper
+  const statistics = React.useMemo(() => {
+    const total = allClientes.length;
+
+    // Calculate Average Age
+    let recordsWithAge = 0;
+    let sumAge = 0;
+    const nowTime = new Date().getTime();
+
+    // Past week registrations count
+    let recentInclusions = 0;
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    allClientes.forEach(c => {
+      // 1. Resolve age
+      if (c.data_nascimento) {
+        const birth = new Date(c.data_nascimento);
+        const ageDifMs = nowTime - birth.getTime();
+        const ageDate = new Date(ageDifMs);
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        if (!isNaN(age)) {
+          sumAge += age;
+          recordsWithAge++;
+        }
+      }
+
+      // 2. Resolve recent inclusions
+      if (c.created_at) {
+        const created = new Date(c.created_at);
+        if (created >= sevenDaysAgo) {
+          recentInclusions++;
+        }
+      }
+    });
+
+    const averageAge = recordsWithAge > 0 ? Math.round(sumAge / recordsWithAge) : null;
+    const lastRegistered = allClientes.find(() => true)?.nome || 'Nenhum cadastrado';
+
+    return {
+      total,
+      averageAge,
+      recentInclusions,
+      lastRegistered
+    };
+  }, [allClientes]);
+
+  useEffect(() => {
+    authService.getCurrentUser().then(u => {
+      setUser(u);
+      setAuthLoading(false);
+    }).catch(err => {
+      console.error('Auth error:', err);
+      setAuthLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('crm-theme', theme);
+    const body = document.body;
+    body.classList.remove('light', 'dark', 'comfort');
+    body.classList.add(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('crm-fluxo-continuo', String(fluxoContinuo));
+  }, [fluxoContinuo]);
+
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Debounced municipality dynamic search effect
+  useEffect(() => {
+    const fetchMunicipios = async () => {
+      const query = formState.endereco_cidade.trim();
+      if (query.length < 2) {
+        setMunicipiosSuggestions([]);
+        setSupabaseError(null);
+        return;
+      }
+      setIsSearchingMunicipios(true);
+      try {
+        const results = await dbService.getMunicipios(query);
+        setMunicipiosSuggestions(results);
+        setSupabaseError((window as any).__lastSupabaseMunicipiosError || null);
+      } catch (err: any) {
+        console.error('Erro ao buscar municipios:', err);
+        setSupabaseError(err?.message || String(err));
+      } finally {
+        setIsSearchingMunicipios(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchMunicipios();
+    }, 280); // Debounce typing duration to minimize requests
+
+    return () => clearTimeout(timer);
+  }, [formState.endereco_cidade]);
+
+
+
+
+  console.log('Verificando estado de auth:', { authLoading, user });
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  if (!user) return <AuthView onLoginSuccess={setUser} />;
 
   const isDark = theme === 'dark';
   const isComfort = theme === 'comfort';
@@ -257,7 +382,7 @@ export default function App() {
         : 'text-zinc-700 font-semibold',
   };
 
-  const getTabClasses = (tab: 'dashboard' | 'list' | 'form') => {
+  const getTabClasses = (tab: 'dashboard' | 'list' | 'relatorio') => {
     const isActive = activeTab === tab;
     if (isActive) {
       if (theme === 'dark') {
@@ -278,52 +403,9 @@ export default function App() {
     }
   };
 
-  // Load clients lists on mount, filtering and sorting
-  const loadData = async (query = searchQuery, order = sortOrder) => {
-    setLoading(true);
-    try {
-      const data = await dbService.getClientes(query, order);
-      setClientes(data);
-    } catch (err: any) {
-      console.error('Erro geral ao carregar dados:', err);
-      showGlobalError('Falha ao se conectar. Exibindo dados locais seguros.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    loadData();
-  }, []);
 
-  // Debounced municipality dynamic search effect
-  useEffect(() => {
-    const fetchMunicipios = async () => {
-      const query = formState.endereco_cidade.trim();
-      if (query.length < 2) {
-        setMunicipiosSuggestions([]);
-        setSupabaseError(null);
-        return;
-      }
-      setIsSearchingMunicipios(true);
-      try {
-        const results = await dbService.getMunicipios(query);
-        setMunicipiosSuggestions(results);
-        setSupabaseError((window as any).__lastSupabaseMunicipiosError || null);
-      } catch (err: any) {
-        console.error('Erro ao buscar municipios:', err);
-        setSupabaseError(err?.message || String(err));
-      } finally {
-        setIsSearchingMunicipios(false);
-      }
-    };
 
-    const timer = setTimeout(() => {
-      fetchMunicipios();
-    }, 280); // Debounce typing duration to minimize requests
-
-    return () => clearTimeout(timer);
-  }, [formState.endereco_cidade]);
 
   // Set timeout to dismiss success message
   const showGlobalSuccess = (message: string) => {
@@ -343,7 +425,8 @@ export default function App() {
   // Live filter trigger when query changes with small delay or directly
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
-    loadData(val, sortOrder);
+    setCurrentPage(0);
+    loadData(val, sortOrder, 0);
   };
 
   // Handle Sort changes
@@ -610,52 +693,6 @@ export default function App() {
     }
   };
 
-  // Dashboard calculations helper
-  const statistics = React.useMemo(() => {
-    const total = clientes.length;
-
-    // Calculate Average Age
-    let recordsWithAge = 0;
-    let sumAge = 0;
-    const nowTime = new Date().getTime();
-
-    // Past week registrations count
-    let recentInclusions = 0;
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    clientes.forEach(c => {
-      // 1. Resolve age
-      if (c.data_nascimento) {
-        const birth = new Date(c.data_nascimento);
-        const ageDifMs = nowTime - birth.getTime();
-        const ageDate = new Date(ageDifMs);
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        if (!isNaN(age)) {
-          sumAge += age;
-          recordsWithAge++;
-        }
-      }
-
-      // 2. Resolve recent inclusions
-      if (c.created_at) {
-        const created = new Date(c.created_at);
-        if (created >= sevenDaysAgo) {
-          recentInclusions++;
-        }
-      }
-    });
-
-    const averageAge = recordsWithAge > 0 ? Math.round(sumAge / recordsWithAge) : null;
-    const lastRegistered = clientes.find(() => true)?.nome || 'Nenhum cadastrado';
-
-    return {
-      total,
-      averageAge,
-      recentInclusions,
-      lastRegistered
-    };
-  }, [clientes]);
 
   return (
     <div className={`min-h-screen flex flex-col antialiased selection:bg-teal-600 selection:text-white font-sans transition-colors duration-200 ${styles.bg}`}>
@@ -686,7 +723,7 @@ export default function App() {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
             }`} title={isSupabaseConfigured ? 'Conectado ao Supabase (Produção)' : 'Modo Demo (Local de Contingência) - Defina chaves do Supabase no .env'}>
               <span className={`h-1.5 w-1.5 rounded-full ${isSupabaseConfigured ? 'bg-emerald-400 animate-pulse' : 'bg-amber-450'}`} />
-              <span>Versão 3.1.1</span>
+              <span>Versão 3.2.0</span>
             </div>
             
             {/* Controladores de Tema (Claro, Conforto, Escuro) */}
@@ -744,6 +781,18 @@ export default function App() {
               <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin text-teal-500' : ''}`} />
               <span className="hidden sm:inline">Atualizar</span>
             </button>
+
+            <button 
+              onClick={async () => {
+                await authService.signOut();
+                setUser(null);
+              }}
+              className={`p-1 px-2 text-xs flex items-center gap-1.5 cursor-pointer shadow-sm rounded-lg border transition-colors ${isDark ? 'bg-red-900/20 hover:bg-red-900/40 border-red-900 text-red-400' : 'bg-red-50 hover:bg-red-100 border-red-200 text-red-600'}`}
+              title="Sair"
+            >
+              <Users className="h-3 w-3" />
+              <span>Sair</span>
+            </button>
           </div>
         </div>
       </header>
@@ -790,16 +839,11 @@ export default function App() {
         <div className={`flex border-b mb-6 overflow-hidden ${styles.tableBorder}`}>
           <div className="flex gap-2 p-1 overflow-x-auto w-full no-scrollbar">
             <button
-              onClick={() => { setActiveTab('form'); }}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('form')}`}
+              onClick={() => { setActiveTab('dashboard'); resetForm(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('dashboard')}`}
             >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>
-                {currentEditingId ? 'Editar Cliente' : 'Novo Cadastro'}
-              </span>
-              {currentEditingId && (
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
-              )}
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>Painel de Indicadores</span>
             </button>
 
             <button
@@ -818,14 +862,6 @@ export default function App() {
               }`}>
                 {clientes.length}
               </span>
-            </button>
-
-            <button
-              onClick={() => { setActiveTab('dashboard'); resetForm(); }}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all border shrink-0 cursor-pointer ${getTabClasses('dashboard')}`}
-            >
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>Painel de Indicadores</span>
             </button>
 
             <button
@@ -851,7 +887,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -15 }}
                 className="space-y-6"
               >
-                <RelatorioWhatsApp clientes={clientes} theme={theme} />
+                <RelatorioWhatsApp clientes={allClientes} theme={theme} />
               </motion.div>
             )}
 
@@ -881,15 +917,6 @@ export default function App() {
                         {loading ? '...' : statistics.total}
                       </span>
                       <span className={`text-xs transition-colors ${styles.cardMeta}`}>ativos</span>
-                    </div>
-                    <div className={`text-xs mt-2 font-mono transition-colors ${
-                      isDark 
-                        ? 'text-zinc-500' 
-                        : isComfort
-                          ? 'text-[#78695A]'
-                          : 'text-zinc-400'
-                    }`}>
-                      Meta Atual Amostral: 100
                     </div>
                   </div>
 
@@ -977,7 +1004,7 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <DashboardChart clientes={clientes} theme={theme} />
+                    <DashboardChart clientes={allClientes} theme={theme} />
                   )}
                 </div>
 
@@ -1039,6 +1066,17 @@ export default function App() {
                 {/* Search, Sort and Filters header */}
                 <div className={`flex flex-col md:flex-row gap-3 items-stretch justify-between p-3.5 rounded-xl border transition-colors ${styles.chartCard}`}>
                   
+                  {/* Novo Cadastro button */}
+                  <button
+                    onClick={() => { resetForm(); setActiveTab('form'); }}
+                    className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border cursor-pointer hover:opacity-90 ${
+                      isDark ? 'bg-teal-600 text-white border-teal-500' : 'bg-teal-600 text-white border-teal-600'
+                    }`}
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span>Novo</span>
+                  </button>
+
                   {/* Search by "Nome" */}
                   <div className="relative flex-1">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -1081,14 +1119,6 @@ export default function App() {
                     >
                       <ArrowUpDown className="h-3.5 w-3.5 text-teal-500" />
                       <span>Data: {sortOrder === 'desc' ? 'Novos Primeiro' : 'Antigos Primeiro'}</span>
-                    </button>
-
-                    <button
-                      onClick={() => { resetForm(); setActiveTab('form'); }}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-medium transition-all cursor-pointer"
-                    >
-                      <UserPlus className="h-3.5 w-3.5" />
-                      <span>Cadastrar</span>
                     </button>
                   </div>
 
@@ -1296,6 +1326,51 @@ export default function App() {
                           </tbody>
                         </table>
                       </div>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex justify-center items-center gap-4 mt-6">
+                      <button
+                        disabled={currentPage === 0}
+                        onClick={() => {
+                          const next = currentPage - 1;
+                          setCurrentPage(next);
+                          loadData(searchQuery, sortOrder, next);
+                        }}
+                        className={`px-4 py-2 text-xs font-semibold rounded-lg border cursor-pointer transition-colors ${
+                          currentPage === 0
+                            ? 'opacity-50 cursor-not-allowed bg-zinc-100 border-zinc-200 text-zinc-400'
+                            : isDark 
+                              ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-zinc-300'
+                              : isComfort
+                                ? 'bg-[#ECE2CE] hover:bg-[#E0D4C0] border-[#C4B49C] text-[#2C2724]'
+                                : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'
+                        }`}
+                      >
+                        Voltar
+                      </button>
+                      <span className={`text-xs font-mono font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        Pág. {currentPage + 1} de {Math.max(1, Math.ceil(totalCount / 25))}
+                      </span>
+                      <button
+                        disabled={clientes.length < 25}
+                        onClick={() => {
+                          const next = currentPage + 1;
+                          setCurrentPage(next);
+                          loadData(searchQuery, sortOrder, next);
+                        }}
+                        className={`px-4 py-2 text-xs font-semibold rounded-lg border cursor-pointer transition-colors ${
+                          clientes.length < 25
+                            ? 'opacity-50 cursor-not-allowed bg-zinc-100 border-zinc-200 text-zinc-400'
+                            : isDark 
+                              ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-zinc-300'
+                              : isComfort
+                                ? 'bg-[#ECE2CE] hover:bg-[#E0D4C0] border-[#C4B49C] text-[#2C2724]'
+                                : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'
+                        }`}
+                      >
+                        Avançar
+                      </button>
                     </div>
 
                     {/* Mobile Card View: Rendered only on small layouts (< 768px) */}
